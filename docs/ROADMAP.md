@@ -64,6 +64,14 @@
 | 2.13 | **Suavizado espacial H3** (matriz ring-k, producción) + baremo fijo de niveles (P75/92/98/99.7) | ✅ implementado en viz+API |
 | 2.14 | Clusters por estáticas + modelo por región | ❌ descartado (peor que global: la señal regional ya la captura el parent-day) |
 
+## Pendiente día siguiente (2026-10-30)
+
+1. **TIFFs S2 2023/2024 pendientes** (solo hay 2017–2022; el proceso quedó a medias al
+   cancelar): regenerar con `uv run python -m ardintra.ingest.s2_stac 2023 2024` (~25 min).
+   ⚠️ El 2023 es necesario para las features satelitales del TEST 2024 (prev-summer).
+2. Rebuild dataset final + re-evaluar todo (ablación/ensemble/jerárquico) con satélite completo.
+3. Regenerar vídeos res9/res8 + informe Gate definitivo + push.
+
 ## Comparativa por resolución (cerrada 2026-10-29/30)
 
 Res9 gana en ROC (0.9121) y lift (21×); res8 empata en recall@5% (56%); las mayores
