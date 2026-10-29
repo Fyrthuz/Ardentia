@@ -1,0 +1,105 @@
+{
+  "familias": {
+    "lgbm": {
+      "best_params": {
+        "n_est": 500,
+        "lr": 0.05082341959721458,
+        "leaves": 31,
+        "min_child": 205,
+        "subsample": 0.6298202574719083,
+        "colsample": 0.9934434683002586,
+        "reg_l": 1.2273800987852967,
+        "spw": 9.96789203835431
+      },
+      "val_pr_auc": 0.4402,
+      "test_pr_auc": 0.3625,
+      "brier": 0.0464,
+      "recall_top5pct": 0.58,
+      "transfer_ourense_pr_auc": 0.5147,
+      "segundos": 25.4
+    },
+    "xgb": {
+      "best_params": {
+        "n_est": 900,
+        "lr": 0.08341106432362087,
+        "depth": 3,
+        "mcw": 87.06020878304857,
+        "subsample": 0.9329770563201687,
+        "colsample": 0.6061695553391381,
+        "reg_l": 0.005337032762603957,
+        "spw": 9.585112746335845
+      },
+      "val_pr_auc": 0.4486,
+      "test_pr_auc": 0.3457,
+      "brier": 0.0506,
+      "recall_top5pct": 0.564,
+      "transfer_ourense_pr_auc": 0.4927,
+      "segundos": 77.8
+    },
+    "catboost": {
+      "best_params": {
+        "iters": 900,
+        "lr": 0.08341106432362087,
+        "depth": 4,
+        "l2": 27.08160864249967,
+        "_cat_cols": [
+          "road_class"
+        ]
+      },
+      "val_pr_auc": 0.4403,
+      "test_pr_auc": 0.3639,
+      "brier": 0.0792,
+      "recall_top5pct": 0.57,
+      "transfer_ourense_pr_auc": 0.4988,
+      "segundos": 180.7
+    },
+    "hgb": {
+      "best_params": {
+        "iters": 300,
+        "lr": 0.04407984038169244,
+        "leaves": 18,
+        "min_leaf": 184,
+        "l2": 1.2938999080000846
+      },
+      "val_pr_auc": 0.439,
+      "test_pr_auc": 0.3489,
+      "brier": 0.0803,
+      "recall_top5pct": 0.569,
+      "transfer_ourense_pr_auc": 0.4823,
+      "segundos": 89.7
+    },
+    "mlp": {
+      "best_params": {
+        "h0": 16,
+        "h1": 128,
+        "alpha": 0.6732248920775336,
+        "lr_init": 0.004138040112561018
+      },
+      "val_pr_auc": 0.3927,
+      "test_pr_auc": 0.3213,
+      "brier": 0.0385,
+      "recall_top5pct": 0.551,
+      "transfer_ourense_pr_auc": 0.4768,
+      "segundos": 28.4
+    },
+    "lr": {
+      "best_params": {
+        "C": 0.002871245493110136,
+        "l1ratio": 0.0625062543827314
+      },
+      "val_pr_auc": 0.2588,
+      "test_pr_auc": 0.1177,
+      "brier": 0.141,
+      "recall_top5pct": 0.39,
+      "transfer_ourense_pr_auc": 0.1494,
+      "segundos": 36.0
+    }
+  },
+  "info": {
+    "n_trials": 12,
+    "fams": [
+      "lgbm",
+      "catboost"
+    ]
+  }
+}

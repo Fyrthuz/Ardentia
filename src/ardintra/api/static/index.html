@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>WildfireRisk-ES · Galicia (MVP interactivo)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"/>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/h3-js@4.1.0/dist/h3-js.umd.js"></script>
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,'Segoe UI',Roboto,sans-serif}
+  #map{position:absolute;inset:0}
+  .panel{position:absolute;top:12px;right:12px;width:330px;background:#fff;border-radius:10px;
+         box-shadow:0 2px 12px rgba(0,0,0,.25);padding:14px;max-height:calc(100% - 24px);overflow-y:auto;z-index:10}
+  .panel h3{margin:0 0 8px;font-size:14px;color:#333}
+  .ctrl{background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.25);padding:12px;position:absolute;top:12px;left:12px;z-index:10;width:220px}
+  .chip{display:inline-block;padding:2px 8px;border-radius:10px;color:#fff;font-size:12px}
+  .lbl{font-size:11px;color:#888}
+  .val{font-size:13px}
+  mono{font-family:ui-monospace,monospace}
+  .row{margin:6px 0;font-size:12px;color:#333}
+  hr{border:0;border-top:1px solid #eee;margin:8px 0}
+  .warn{color:#a00;font-size:11px}
+  .legend{display:flex;gap:3px;margin-top:10px;font-size:9px;color:#fff}
+  .legend div{flex:1;text-align:center;padding:3px 0;border-radius:4px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="ctrl">
+  <h3 style="margin:0 0 6px;font-size:14px">Escenario (simulado)</h3>
+  <select id="scen" style="width:100%;padding:4px" onchange="changeScenario()">
+    <option value="primavera_normal">Primavera normal</option>
+    <option value="viento_moderado">Viento moderado</option>
+    <option value="ola_de_calor" selected>Ola de calor</option>
+    <option value="sequia_extrema">Sequía extrema</option>
+  </select>
+  <h3 style="margin:12px 0 4px;font-size:12px;color:#555">Capas reales</h3>
+  <label style="font-size:12px"><input type="checkbox" id="ck_ign" checked onchange="toggleLayer('ign','ign-src','/overlay/ignitions.geojson')"/> Igniciones EGIF (reales)</label><br/>
+  <label style="font-size:12px"><input type="checkbox" id="ck_effis" onchange="toggleLayer('effis','effis-src','/overlay/effis.geojson')"/> Perímetros EFFIS ≥30 ha</label><br/>
+  <label style="font-size:12px"><input type="checkbox" id="ck_roads" onchange="toggleLayer('roads','roads-src','/overlay/roads_light.geojson')"/> Vías principales</label>
+  <div class="legend" id="legend"></div>
+  <div class="warn">Colores = niveles absolutos del boletín · Fase 2 sustituye el modelo simulado por el entrenado.</div>
+</div>
+
+<div class="panel" id="panel">
+  <h3>Ficha de celda (click en el mapa)</h3>
+  <div id="detail" class="row">Haz click sobre cualquier celda hexagonal: sus datos se piden en ese momento a <code>/v1/risk/cell/{h3}</code>.</div>
+</div>
+
+<script>
+const map = new maplibregl.Map({
+  container: 'map',
+  style: {
+    version: 8,
+    sources: { "basemap": { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256, attribution: "© OpenStreetMap" } },
+    layers: [ { id: "bg", type: "raster", source: "basemap" } ]
+  },
+  center: [-8.05, 42.75],
+  zoom: 7.4
+});
+
+const BBOX = [-9.65, 41.75, -6.60, 43.95];
+// esquinas para el ImageSource: [lon,lat] en orden NW, NE, SE, SW
+const IMG_COORDS = [[-9.65, 43.95], [-6.60, 43.95], [-6.60, 41.75], [-9.65, 41.75]];
+const SCENES = ["primavera_normal","viento_moderado","ola_de_calor","sequia_extrema"];
+// colores EXACTOS de la paleta discreta del servidor (risk_sim.RAMP) — ficha y leyenda
+const LAYER_COLORS = {"Bajo":"#36a852","Moderado":"#ebd23c","Alto":"#f58c28","Muy alto":"#e83c28","Extremo":"#960f2d"};
+const CAUSA_TXT = {400:"intencionado",240:"causa desconocida",300:"negligencia",280:"ignota"};
+const SCEN_NAMES = {primavera_normal:"Primavera normal",viento_moderado:"Viento moderado",ola_de_calor:"Ola de calor",sequia_extrema:"Sequía extrema"};
+
+let scen = null;         // escenario actual
+const scenLayer = {};    // scen -> layer id
+
+// escenario vía query param (?scenario=ola_de_calor) para el embed de Streamlit
+const urlScen = new URLSearchParams(location.search).get("scenario");
+if (urlScen && SCENES.includes(urlScen)) {
+  document.getElementById("scen").value = urlScen;
+  scen = urlScen;
+}
+
+document.getElementById("legend").innerHTML =
+  Object.entries(LAYER_COLORS).map(([n,c])=>`<div style="background:${c}">${n}</div>`).join("");
+
+map.on("load", () => {
+  changeScenario();
+  // contornos de celdas (imagen constante que no depende del escenario) — líneas ligeras
+  map.addSource("borders", {type: "image", url: "/overlay/borders.png", coordinates: IMG_COORDS});
+  map.addLayer({id: "borders", type: "raster", source: "borders", paint: {"raster-opacity": .3}});
+  // resalte de click: halo ancho + línea nítida encima
+  map.addSource("hl", {type: "geojson", data: {type: "FeatureCollection", features: []}});
+  map.addLayer({id: "hl-halo", type: "line", source: "hl",
+    paint: {"line-color": "#00e5ff", "line-width": 10, "line-opacity": .28}});
+  map.addLayer({id: "hl", type: "line", source: "hl",
+    paint: {"line-color": "#00e5ff", "line-width": 4.5, "line-opacity": 1 }});
+  if (document.getElementById("ck_ign").checked) toggleLayer("ign","ign-src","/overlay/ignitions.geojson");
+});
+
+function changeScenario(){
+  scen = document.getElementById("scen").value;
+  const layId = "risk-" + scen;
+  // única paleta: discreta por niveles del boletín (casar con la ficha)
+  Object.values(scenLayer).forEach(id => { if (id !== layId) map.setPaintProperty(id, "raster-opacity", 0); });
+  if (!scenLayer[layId]) {
+    map.addSource(layId, {type: "image", url: `/overlay/risk/${scen}.png?palette=discreta&v=4`, coordinates: IMG_COORDS});
+    map.addLayer({id: layId, type: "raster", source: layId, paint: {"raster-opacity": 1}});
+  } else {
+    map.setPaintProperty(layId, "raster-opacity", 1);
+  }
+  scenLayer[layId] = layId;
+  if (window._lastH9) detail(window._lastH9);   // refresh ficha si hay sel.
+}
+
+function toggleLayer(layId, srcId, url){
+  const chk = document.getElementById("ck_" + layId);
+  if (!chk.checked) {
+    if (map.getLayer(layId)) map.removeLayer(layId);   // la fuente queda en cache
+    return;
+  }
+  if (!map.getSource(srcId)) map.addSource(srcId, {type:"geojson", data:url});
+  if (map.getLayer(layId)) return;                    // ya montada — vale
+  if (layId === "ign") {
+    map.addLayer({id: layId, type:"circle", source: srcId,
+      paint: { "circle-radius":8, "circle-color":"#1414e6", "circle-opacity":.75,
+               "circle-stroke-width":1, "circle-stroke-color":"#fff" }});
+  } else if (layId === "effis") {
+    map.addLayer({id: layId, type:"circle", source: srcId,
+      paint: { "circle-radius":7, "circle-color":"#00c8dc", "circle-opacity":.75,
+               "circle-stroke-width":1, "circle-stroke-color":"#222" }});
+  } else {
+    map.addLayer({id: layId, type:"line", source: srcId,
+      paint: { "line-color": ["match", ["get","c"], "autovia","#dc1e3e", "nacional","#f08c1e", "#fadc3c"],
+               "line-width":2, "line-opacity":.7 }});
+  }
+}
+
+map.on("click", async e => {
+  const H3j = window.h3;
+  if (!H3j || typeof H3j.latLngToCell !== "function") {
+    document.getElementById("detail").innerHTML = `<span class="warn">h3-js no cargó (cds). Recarga la página.</span>`;
+    return;
+  }
+  const h9 = H3j.latLngToCell(e.lngLat.lat, e.lngLat.lng, 9);
+  await detail(h9);
+});
+
+async function detail(h9){
+  const el = document.getElementById("detail");
+  el.innerHTML = "Cargando " + h9 + "…";
+  try {
+    const r = await fetch(`/v1/risk/cell/${h9}?scenario=${scen}`);
+    const hl = map.getSource("hl");
+    const setHL = boundary => { if (hl) hl.setData(boundary
+      ? { type: "Feature", geometry: { type: "Polygon", coordinates: [[...boundary, boundary[0]]] } }
+      : { type: "FeatureCollection", features: [] }); };
+    if (!r.ok) {
+      window._lastH9 = null;
+      setHL(null);
+      el.innerHTML = `<span class="warn">Celda ${h9}: sin suelo forestal en el catálogo del modelo.</span>`;
+      return;
+    }
+    const j = await r.json();
+    window._lastH9 = h9;
+    setHL(j.boundary);
+    const s = j.static, sim = j.sim, eg = j.egif;
+    el.innerHTML = `
+      <span class="chip" style="background:${LAYER_COLORS[sim.clase_txt] ?? "#666"}">${sim.clase_txt ?? "n/d"}</span>
+      <span class="lbl" style="margin-left:6px">${SCEN_NAMES[scen]}</span>
+      <div class="row" style="margin-top:8px"><span class="lbl">Probabilidad simulada</span> <span class="val">${(sim.p_riesgo*100).toFixed(1)}%</span></div>
+      <div class="row"><span class="lbl">Celda H3 res9</span> <span class="val">${h9}</span></div>
+      <hr/>
+      <div class="row"><b>Combustible</b><br/>modelo Rothermel ${s.fuel_model ?? "n/d"} · fracción forestal ${(s.forest_frac*100).toFixed(0)}%</div>
+      <div class="row"><b>Vía más cercana</b><br/>${s.road_class} — ${s.dist_to_road<=1 ? "atraviesa la celda" : "dist "+s.dist_to_road+" m"} · densidad ${s.road_density_1km} km/km²<br/>
+      ${s.road_fuel_interface ? "⚠ Arcén con combustible denso (interfaz vía-combustible)" : "arcén sin combustible denso"}</div>
+      <div class="row"><b>Topografía</b><br/>pendiente ${s.slope_deg}° · orientación ${s.aspect_deg}° (${solaTxt(s)}) · cota ${s.elev_m} m</div>
+      <hr/>
+      <div class="row"><b>Incendios reales (EGIF 2017–23)</b><br/>
+      ${eg.n_igniciones ? `⦿ ${eg.n_igniciones} ignición(es) — primera ${eg.primera}, causa ${causaTxt(eg.causa)}, superficie acumulada ${eg.superficie_ha} ha` : "sin igniciones registradas"}</div>`;
+  } catch (err) {
+    el.innerHTML = `<span class="warn">Error fetch: ${err}</span>`;
+  }
+}
+function solaTxt(s){ return (s.aspect_deg >= 120 && s.aspect_deg <= 260) ? "solana" : "umbría"; }
+function causaTxt(id){ return CAUSA_TXT[id] ?? ("código " + id); }
+</script>
+</body>
+</html>

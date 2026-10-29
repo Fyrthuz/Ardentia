@@ -1,0 +1,53 @@
+{
+  "test_prevalence": 0.00241,
+  "n_test": 56822,
+  "fusion_ap": 0.1497,
+  "fusion_lift": 62.1,
+  "fusion_recall_top5": 0.606,
+  "fusion_precision_top5": 0.0292,
+  "familias": {
+    "fino_lgbm": {
+      "test_ap": 0.108,
+      "recall_top5": 0.562,
+      "peso_fusion": 0.187
+    },
+    "regional": {
+      "test_ap": 0.1099,
+      "recall_top5": 0.511,
+      "peso_fusion": 0.09
+    },
+    "catboost": {
+      "test_ap": 0.1281,
+      "recall_top5": 0.584,
+      "peso_fusion": 0.368
+    },
+    "lgbm_big10_tuned": {
+      "test_ap": 0.1541,
+      "recall_top5": 0.635,
+      "peso_fusion": 0.963
+    },
+    "ft_attention": {
+      "test_ap": 0.0614,
+      "recall_top5": 0.423,
+      "peso_fusion": 0.018
+    }
+  },
+  "optuna": {
+    "catboost": {
+      "iters": 400,
+      "lr": 0.015256811898068502,
+      "depth": 4,
+      "l2": 19.030368381735816
+    },
+    "lgbm_big10": {
+      "n_est": 600,
+      "lr": 0.01589316830321783,
+      "leaves": 106,
+      "min_child": 225,
+      "subsample": 0.8360600034763896,
+      "colsample": 0.9346307692302886,
+      "reg_l": 9.63027854366953,
+      "spw": 20.44942961217845
+    }
+  }
+}

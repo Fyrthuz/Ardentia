@@ -1,0 +1,571 @@
+[2022] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2022] tile 29TMH…
+[2022] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2022] tile 29TMH…
+[2022] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2022] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2022] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2022] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2022] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2022] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2022.tif
+[2023] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2022.tif
+[2023] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TMH…
+[2023] tile 29TMH…
+[2023] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2023] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2023] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2023] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2023] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2023] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2023] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2023] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2023.tif
+[2024] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2023.tif
+[2024] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TMG_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TMG_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+[2024] tile 29TMH…
+[2024] tile 29TMH…
+  ! S2A_29TMH_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+  ! S2A_29TMH_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+[2024] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2024] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TMJ_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+  ! S2A_29TMJ_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2024] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2024] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TNG_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+[2024] tile 29TNH…
+  ! S2A_29TNG_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+[2024] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TNH_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+  ! S2A_29TNH_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+[2024] tile 29TNJ…
+[2024] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2024] tile 29TPG…
+[2024] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TPG_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2024] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TPG_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2024] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2024] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2024] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+  ! S2A_29TPJ_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+  ! S2A_29TPJ_20240908_0_L2A: RasterioIOError: InvalidCredentials: No valid AWS credentials found. For auth
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2024] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2024] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2024.tif
+[2021] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2024.tif
+[2021] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TMH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TMH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2021] tile 29TNH…
+[2021] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TNJ…
+[2021] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2021] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2021.tif
+[2020] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2021.tif
+[2020] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2020] tile 29TMH…
+[2020] tile 29TMH…
+[2020] tile 29TMJ…
+[2020] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2020] tile 29TNG…
+[2020] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2020] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2020] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2020] tile 29TNJ…
+[2020] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2020] tile 29TPG…
+[2020] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2020] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2020] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2020] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2020.tif
+[2019] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2019] tile 29TMH…
+[2019] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2019] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2019] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2019] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2019] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2019] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2019] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2019] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2019.tif
+[2018] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2018] tile 29TMH…
+[2018] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2018] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2018] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2018] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2018] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2018] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2018] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2018] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2018.tif
+[2017] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TMH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TMJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+[2017] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TNH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TNJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TPG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TPH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TPJ…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 30TTM…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:98: RuntimeWarning: invalid value encountered in cast
+  mask = ~np.isin(scl.astype("uint8"), SCL_BAD)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:131: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2017.tif
+[2017] tile 29TMG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TMH…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+[2017] tile 29TMJ…
+[2017] tile 29TNG…
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+skip s2_summer_2017.tif (existe)
+skip s2_summer_2018.tif (existe)
+skip s2_summer_2019.tif (existe)
+skip s2_summer_2020.tif (existe)
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2021.tif

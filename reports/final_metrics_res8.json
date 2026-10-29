@@ -1,0 +1,84 @@
+{
+  "targets": {
+    "cualquier_ignicion": {
+      "prev": 0.0363,
+      "fino_solo": {
+        "pr_auc": 0.3034,
+        "roc_auc": 0.8532,
+        "brier": 0.0896,
+        "recall@5%": 0.391,
+        "precision@5%": 0.2842,
+        "recall@1%": 0.166,
+        "precision@1%": 0.6061
+      },
+      "regional_solo": {
+        "pr_auc": 0.3138,
+        "roc_auc": 0.8545,
+        "brier": 0.0891,
+        "recall@5%": 0.401,
+        "precision@5%": 0.2914,
+        "recall@1%": 0.18,
+        "precision@1%": 0.6545
+      },
+      "fusion_rank": {
+        "pr_auc": 0.3116,
+        "roc_auc": 0.8549,
+        "brier": 0.308,
+        "recall@5%": 0.401,
+        "precision@5%": 0.2914,
+        "recall@1%": 0.166,
+        "precision@1%": 0.6061
+      },
+      "fwi_solo": {
+        "pr_auc": 0.07,
+        "roc_auc": 0.6903,
+        "brier": 0.32,
+        "recall@5%": 0.095,
+        "precision@5%": 0.0689,
+        "recall@1%": 0.027,
+        "precision@1%": 0.097
+      }
+    },
+    "big10": {
+      "prev": 0.0082,
+      "fino_solo": {
+        "pr_auc": 0.1005,
+        "roc_auc": 0.8698,
+        "brier": 0.0193,
+        "recall@5%": 0.511,
+        "precision@5%": 0.0834,
+        "recall@1%": 0.17,
+        "precision@1%": 0.1394
+      },
+      "regional_solo": {
+        "pr_auc": 0.1192,
+        "roc_auc": 0.8711,
+        "brier": 0.0193,
+        "recall@5%": 0.519,
+        "precision@5%": 0.0846,
+        "recall@1%": 0.185,
+        "precision@1%": 0.1515
+      },
+      "fusion_rank": {
+        "pr_auc": 0.1105,
+        "roc_auc": 0.8726,
+        "brier": 0.3255,
+        "recall@5%": 0.511,
+        "precision@5%": 0.0834,
+        "recall@1%": 0.193,
+        "precision@1%": 0.1576
+      },
+      "fwi_solo": {
+        "pr_auc": 0.0198,
+        "roc_auc": 0.6818,
+        "brier": 0.3304,
+        "recall@5%": 0.141,
+        "precision@5%": 0.023,
+        "recall@1%": 0.037,
+        "precision@1%": 0.0303
+      }
+    }
+  },
+  "n_test": 16557,
+  "dataset": "data/processed/features/v1_res8/dataset.parquet"
+}

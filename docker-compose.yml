@@ -1,0 +1,33 @@
+services:
+  python:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python
+    env_file: .env
+    volumes:
+      - .:/work
+    working_dir: /work
+    command: sleep infinity
+
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: ardintra
+      POSTGRES_PASSWORD: ardintra
+      POSTGRES_DB: ardintra
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    profiles: ["serving"]  # se levanta en Fase 3; en Fase 0-2 solo python
+
+  duckdb-cli:
+    image: ghcr.io/duckdb/duckdb:latest
+    entrypoint: ["duckdb"]
+    volumes:
+      - ./data:/data
+    working_dir: /data
+    profiles: ["tools"]
+
+volumes:
+  pgdata:

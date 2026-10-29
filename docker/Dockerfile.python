@@ -1,0 +1,8 @@
+FROM mambaorg/micromamba:1.5-bookworm-slim
+
+RUN micromamba install -y -n base -c conda-forge python=3.12 \
+    geopandas pyogrio rasterio duckdb h3-py pyarrow cdsapi \
+    pydantic python-dotenv typer requests httpx tenacity tqdm \
+ && micromamba clean -y -a
+
+WORKDIR /work

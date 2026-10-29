@@ -1,0 +1,54 @@
+{
+  "k_clusters": 6,
+  "global": {
+    "tag": "GLOBAL (1 modelo)",
+    "n_test": 56822,
+    "pr_auc": 0.0969,
+    "recall_top5": 0.569
+  },
+  "per_region": [
+    {
+      "tag": "regi\u00f3n 0",
+      "n_test": 13005,
+      "pr_auc": 0.1392,
+      "recall_top5": 0.516,
+      "n_train": 40389
+    },
+    {
+      "tag": "regi\u00f3n 1",
+      "n_test": 11843,
+      "pr_auc": 0.0008,
+      "recall_top5": 0.0,
+      "n_train": 36066
+    },
+    {
+      "tag": "regi\u00f3n 2",
+      "n_test": 1984,
+      "pr_auc": 0.0684,
+      "recall_top5": 0.7,
+      "n_train": 6184
+    },
+    {
+      "tag": "regi\u00f3n 3",
+      "n_test": 11319,
+      "pr_auc": 0.071,
+      "recall_top5": 0.467,
+      "n_train": 34847
+    },
+    {
+      "tag": "regi\u00f3n 4",
+      "n_test": 7372,
+      "pr_auc": 0.0073,
+      "recall_top5": 0.231,
+      "n_train": 22547
+    },
+    {
+      "tag": "regi\u00f3n 5",
+      "n_test": 11299,
+      "pr_auc": 0.1336,
+      "recall_top5": 0.581,
+      "n_train": 34513
+    }
+  ],
+  "per_cluster_global_ap": 0.0069
+}

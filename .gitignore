@@ -1,0 +1,15 @@
+# Datos — nunca versionados (los manifests sí van a git)
+data/raw/*
+data/interim/*
+data/processed/*
+!data/raw/**/manifest.json
+!data/catalog/
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+reports/*.html
+secrets/
+.env
