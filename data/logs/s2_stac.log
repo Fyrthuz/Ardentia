@@ -569,3 +569,12 @@ skip s2_summer_2020.tif (existe)
 /home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
   med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
 -> data/raw/s2/s2_summer_2021.tif
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+/home/fyrthuz/Desktop/Ardentia/src/ardintra/ingest/s2_stac.py:138: RuntimeWarning: All-NaN slice encountered
+  med = {k: np.nanmedian(np.stack(v), axis=0).astype("float32") for k, v in stacks.items()}
+-> data/raw/s2/s2_summer_2022.tif

@@ -1,0 +1,262 @@
+{
+  "block_cols": {
+    "M0_fwi_solo": {
+      "usadas": [
+        "fwi"
+      ]
+    },
+    "M1_fwi_met": {
+      "usadas": [
+        "bui",
+        "dc",
+        "dmc",
+        "ffmc",
+        "ffmc_7d",
+        "fwi",
+        "fwi_7d",
+        "fwi_prev",
+        "isi",
+        "prec_mm",
+        "rh_mean",
+        "swc_l1_mean",
+        "swc_l2_mean",
+        "tmax_c",
+        "vpd_max",
+        "vpd_mean",
+        "wind_max_kmh"
+      ]
+    },
+    "M2_satelite": {
+      "usadas": [
+        "bui",
+        "dc",
+        "dmc",
+        "ffmc",
+        "ffmc_7d",
+        "fwi",
+        "fwi_7d",
+        "fwi_prev",
+        "isi",
+        "nbr_summer",
+        "ndmi_anom",
+        "ndmi_summer",
+        "ndvi_summer",
+        "prec_mm",
+        "rh_mean",
+        "swc_l1_mean",
+        "swc_l2_mean",
+        "tmax_c",
+        "vpd_max",
+        "vpd_mean",
+        "wind_max_kmh"
+      ]
+    },
+    "M3_estaticas": {
+      "usadas": [
+        "aspect_cos",
+        "aspect_sin",
+        "bui",
+        "dc",
+        "dmc",
+        "elev_m",
+        "ffmc",
+        "ffmc_7d",
+        "forest_frac",
+        "fuel_model",
+        "fwi",
+        "fwi_7d",
+        "fwi_prev",
+        "isi",
+        "nbr_summer",
+        "ndmi_anom",
+        "ndmi_summer",
+        "ndvi_summer",
+        "prec_mm",
+        "rh_mean",
+        "slope_deg",
+        "swc_l1_mean",
+        "swc_l2_mean",
+        "tmax_c",
+        "vpd_max",
+        "vpd_mean",
+        "wind_max_kmh"
+      ]
+    },
+    "M4_viaria": {
+      "usadas": [
+        "aspect_cos",
+        "aspect_sin",
+        "bui",
+        "dc",
+        "dens_x_weekend",
+        "dist_to_road_log",
+        "dmc",
+        "elev_m",
+        "es_finde",
+        "ffmc",
+        "ffmc_7d",
+        "forest_frac",
+        "fuel_model",
+        "fwi",
+        "fwi_7d",
+        "fwi_prev",
+        "isi",
+        "nbr_summer",
+        "ndmi_anom",
+        "ndmi_summer",
+        "ndvi_summer",
+        "prec_mm",
+        "rh_mean",
+        "road_class",
+        "road_density_log",
+        "road_fuel_interface",
+        "slope_deg",
+        "swc_l1_mean",
+        "swc_l2_mean",
+        "tmax_c",
+        "vpd_max",
+        "vpd_mean",
+        "wind_max_kmh"
+      ]
+    },
+    "M4b_interacciones": {
+      "usadas": [
+        "aspect_cos",
+        "aspect_sin",
+        "bui",
+        "dc",
+        "dens_x_sequia",
+        "dens_x_weekend",
+        "dist_to_road_log",
+        "dist_x_slope",
+        "dmc",
+        "elev_m",
+        "es_finde",
+        "ffmc",
+        "ffmc_7d",
+        "forest_frac",
+        "fuel_model",
+        "fwi",
+        "fwi_7d",
+        "fwi_prev",
+        "isi",
+        "nbr_summer",
+        "ndmi_anom",
+        "ndmi_summer",
+        "ndvi_summer",
+        "prec_mm",
+        "rh_mean",
+        "road_class",
+        "road_density_log",
+        "road_fuel_interface",
+        "slope_deg",
+        "swc_l1_mean",
+        "swc_l2_mean",
+        "tmax_c",
+        "vpd_max",
+        "vpd_mean",
+        "wind_max_kmh"
+      ]
+    }
+  },
+  "results": [
+    {
+      "modelo": "M0_fwi_solo",
+      "n_features": 1,
+      "temporal": {
+        "pr_auc": 0.5017,
+        "brier": 0.1783,
+        "recall_top5pct": 0.15,
+        "recall_top20pct": 0.463
+      },
+      "transfer_ourense": {
+        "pr_auc": 0.5054,
+        "brier": 0.2404,
+        "recall_top5pct": 0.13,
+        "recall_top20pct": 0.414
+      }
+    },
+    {
+      "modelo": "M1_fwi_met",
+      "n_features": 17,
+      "temporal": {
+        "pr_auc": 0.6344,
+        "brier": 0.1477,
+        "recall_top5pct": 0.164,
+        "recall_top20pct": 0.597
+      },
+      "transfer_ourense": {
+        "pr_auc": 0.6894,
+        "brier": 0.1802,
+        "recall_top5pct": 0.142,
+        "recall_top20pct": 0.556
+      }
+    },
+    {
+      "modelo": "M2_satelite",
+      "n_features": 21,
+      "temporal": {
+        "pr_auc": 0.607,
+        "brier": 0.1618,
+        "recall_top5pct": 0.158,
+        "recall_top20pct": 0.589
+      },
+      "transfer_ourense": {
+        "pr_auc": 0.6083,
+        "brier": 0.2225,
+        "recall_top5pct": 0.111,
+        "recall_top20pct": 0.494
+      }
+    },
+    {
+      "modelo": "M3_estaticas",
+      "n_features": 27,
+      "temporal": {
+        "pr_auc": 0.6356,
+        "brier": 0.1429,
+        "recall_top5pct": 0.152,
+        "recall_top20pct": 0.629
+      },
+      "transfer_ourense": {
+        "pr_auc": 0.6493,
+        "brier": 0.177,
+        "recall_top5pct": 0.111,
+        "recall_top20pct": 0.568
+      }
+    },
+    {
+      "modelo": "M4_viaria",
+      "n_features": 33,
+      "temporal": {
+        "pr_auc": 0.6385,
+        "brier": 0.1422,
+        "recall_top5pct": 0.154,
+        "recall_top20pct": 0.635
+      },
+      "transfer_ourense": {
+        "pr_auc": 0.659,
+        "brier": 0.1765,
+        "recall_top5pct": 0.111,
+        "recall_top20pct": 0.549
+      }
+    },
+    {
+      "modelo": "M4b_interacciones",
+      "n_features": 35,
+      "temporal": {
+        "pr_auc": 0.6386,
+        "brier": 0.1447,
+        "recall_top5pct": 0.16,
+        "recall_top20pct": 0.633
+      },
+      "transfer_ourense": {
+        "pr_auc": 0.6437,
+        "brier": 0.1801,
+        "recall_top5pct": 0.105,
+        "recall_top20pct": 0.549
+      }
+    }
+  ],
+  "delta_m4_m3_temporal": 0.0029,
+  "delta_m4b_m3_temporal": 0.003
+}

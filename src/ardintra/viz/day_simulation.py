@@ -25,7 +25,9 @@ from scipy.spatial import cKDTree
 
 from ardintra.features.build_dataset import load_met_stations
 
-FRAMES = Path("data/processed/video_frames")
+import os as _os
+_RES_V = int(_os.environ.get("ARDENTIA_RES", "9"))
+FRAMES = Path(f"data/processed/video_frames_res{_RES_V}")
 FEATS_NUM = [
     "fwi", "ffmc", "dmc", "dc", "isi", "bui", "tmax_c", "rh_mean", "wind_max_kmh", "prec_mm",
     "swc_l1_mean", "swc_l2_mean", "vpd_max", "vpd_mean", "spei30", "spei90",

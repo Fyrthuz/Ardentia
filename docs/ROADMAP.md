@@ -64,6 +64,12 @@
 | 2.13 | **Suavizado espacial H3** (matriz ring-k, producción) + baremo fijo de niveles (P75/92/98/99.7) | ✅ implementado en viz+API |
 | 2.14 | Clusters por estáticas + modelo por región | ❌ descartado (peor que global: la señal regional ya la captura el parent-day) |
 
+## Comparativa por resolución (cerrada 2026-10-29/30)
+
+Res9 gana en ROC (0.9121) y lift (21×); res8 empata en recall@5% (56%); las mayores
+(res4-7) pierden lift por dilución de features y etiquetas agregadas. **Decisión:
+res9 producción · res8 capa de presentación regional.**
+
 ## Fase 3 — Serving (Docker local)
 
 - PostGIS+Martin + FastAPI + visor MapLibre; pipeline diario 06:00/12:00. Pendiente.

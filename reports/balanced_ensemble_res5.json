@@ -1,0 +1,18 @@
+{
+  "baseline_single": {
+    "pr_auc": 0.1438,
+    "roc_auc": 0.8276,
+    "recall_top5": 0.24,
+    "recall_top1": 0.048,
+    "brier": 0.054
+  },
+  "balanced_ensemble": {
+    "pr_auc": 0.1622,
+    "roc_auc": 0.8488,
+    "recall_top5": 0.288,
+    "recall_top1": 0.032,
+    "brier": 0.147,
+    "n_models": 25
+  },
+  "target": "big>=10ha"
+}

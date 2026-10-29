@@ -49,11 +49,12 @@ RENAME = {
 
 MET_VARS = ["tmax_c", "rh_mean", "wind_max_kmh", "prec_mm", "ffmc", "dmc", "dc", "isi", "bui", "fwi",
             "ffmc_7d", "fwi_7d", "fwi_prev", "spei30", "spei90", "ffmc_anom", "dmc_anom", "dc_anom"]
-NEG_DAILY_SEASON = int(_os.environ.get("ARDENTIA_NEG", "150")) if "NEG_DAILY_SEASON" not in dir() else NEG_DAILY_SEASON  # ~20:1 real operational ratio
+# negativos por día escalados por resolución (el ARDENTIA_NEG del env tiene prioridad)
+NEG_DAILY_SEASON = int(_os.environ.get("ARDENTIA_NEG", str({9: 150, 8: 40, 7: 25, 6: 12, 5: 4, 4: 3}.get(int(_os.environ.get("ARDENTIA_RES", "9")), 150))))
 NEG_DAILY_WINTER = 3
 # ventanas de contaminación por propagación (un fuego cercano+y reciente ≠ negativo real)
 import os as _os
-RADIUS_M = 1500.0 if int(_os.environ.get('ARDENTIA_RES', '9')) == 8 else 1030.0     # ~2 anillos H3 res9
+RADIUS_M = {9: 1030.0, 8: 1500.0, 7: 2500.0, 5: 8000.0, 4: 15000.0}.get(int(_os.environ.get('ARDENTIA_RES', '9')), 1030.0)     # ~2 anillos H3 res9
 SAFE_DAYS = 7
 S2_BASELINE_YEARS = (2017, 2019)
 SEED = 42

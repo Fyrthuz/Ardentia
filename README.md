@@ -83,6 +83,21 @@ por score (baremo fijo: P75/92/98/99.7 de la temporada), fuegos reales aparecien
 - Fase 3 (serving/postgis/martin/visor — prototipo mini-API ya operativo en :8001),
   Fase 4 (XAI+LLM) y Fase 5 (Cloudflare): pendientes.
 
+## Comparativa por resolución de hexágono (balanced-ensemble 25×, target ≥10 ha, test 2023-24)
+
+| res | celda | filas | prev big10 test | PR-AUC | **lift** | ROC-AUC | recall@5% |
+|---|---|---|---|---|---|---|---|
+| **res9** | 105 m | 267k | 0.23% | 0.0465 | **21×** | **0.9121** | 54% |
+| **res8** | 740 m | 72k | 0.82% | 0.1258 | 15× | 0.8985 | **56%** |
+| res7 | 5.2 km | 28k | 2.38% | 0.1451 | 6× | 0.8643 | 36% |
+| res6 | 36 km² | 30k | 2.04% | 0.1336 | 7× | 0.8737 | 39% |
+| res5 | 253 km² | 16k | 4.07% | 0.1622 | 4× | 0.8488 | 29% |
+| res4 | 1.770 km² | 11k | 5.11% | 0.2656 | 5× | 0.8757 | 30% |
+
+⚠️ El AP absoluto sube con celdas grandes SOLO porque sube la prevalencia; el **lift honesto**
+muestra que res9/res8 son muy superiores (5-21× vs 4-7×). Los vídeos de simulación existen
+para las 6 resoluciones (`reports/simulacion_2023_res*.mp4`).
+
 ## Próximos pasos (retomar mañana)
 
 1. **Granularidad**: res9 (245k celdas) tiene demasiada densidad visual para el mapa;
