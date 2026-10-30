@@ -428,7 +428,8 @@ def run() -> pd.DataFrame:
     pairs["_is_pos"] = pairs["source"] != "neg"
     pairs = (pairs.sort_values("_is_pos", ascending=False)
              .drop_duplicates(subset=["h9", "fecha"], keep="first")
-             .drop(columns="_is_pos"))
+             .drop(columns="_is_pos")
+             .reset_index(drop=True))   # CRÍTICO: asignaciones .loc[i] posicionales aguas abajo
     print(f"pares: {len(pos):,} positivos + {len(neg):,} negativos = {len(pairs):,}")
 
     met = load_met_stations()
@@ -442,6 +443,13 @@ def run() -> pd.DataFrame:
     print("era5 features:", feat_era5.notna().mean().round(3).to_dict())
     feat_rec = _recency_features(pairs, ig.dropna(subset=['h9']), cells)
     print("recencia features:", {c: round(float(feat_rec[c].median()), 1) for c in feat_rec.columns})
+
+    # Ronda 1 literatura: lags de ignición (PAR-P Galicia) + contexto espacial + geo
+    from ardintra.features.spatial_lags import fire_lag_features, spatial_context_features, geo_features
+    feat_lag = fire_lag_features(pairs, ig.dropna(subset=["h9"]), cells)
+    print("fire-lags: n_ign_cell_3d>0 en", f"{(feat_lag['n_ign_cell_3d'] > 0).mean():.1%} de filas")
+    feat_ctx = spatial_context_features(pairs, cells)
+    feat_geo = geo_features(pairs, cells)
     feat_s2 = _s2_features_prev_summer(pairs, cells)
     print("s2 features:", ~(feat_s2.isna().all()) if False else "mostradas abajo")
     print(feat_s2.notna().mean().round(3).to_dict())
@@ -454,7 +462,8 @@ def run() -> pd.DataFrame:
         df["road_density_log"] = np.log1p(df["road_density_1km"])
     df = pd.concat([df.reset_index(drop=True), feat_met.reset_index(drop=True),
                     feat_era5.reset_index(drop=True), feat_s2.reset_index(drop=True),
-                    feat_rec.reset_index(drop=True)], axis=1)
+                    feat_rec.reset_index(drop=True), feat_lag.reset_index(drop=True),
+                    feat_ctx.reset_index(drop=True), feat_geo.reset_index(drop=True)], axis=1)
     # normalización: fire_id puede traer listas (EGIF celda-día multiembro)
     df["fire_id"] = df["fire_id"].apply(
         lambda x: ";".join(map(str, x)) if isinstance(x, (list, tuple, np.ndarray))

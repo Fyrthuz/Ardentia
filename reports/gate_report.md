@@ -129,6 +129,26 @@ densidad viaria, tasa de fuego del anillo) + mes → posterior con la evidencia
 es el MEJOR resultado del proyecto: la calibración bayesiana y el ranking del
 ensemble capturan cosas distintas y la fusión suma ambas.
 
+## 6d. Ronda 1 de literatura — lags autoregresivos + contexto espacial + geo (v5 dataset)
+
+Implementadas las técnicas B+A+C del análisis de literatura (Martínez-PAR Galicia,
+CNN-2D Zhang, LOAN): lags de ignición (cell 3d / near 2.5 km 2d / near 5 km 7d),
+contexto espacial (medias de las 9 celdas más cercanas del día para 10 dinámicas),
+lat/lon y encoding sinusoidal de doy.
+
+| Modelo (target ≥10 ha, test 2023-24) | PR-AUC | ROC-AUC | recall@5% |
+|---|---|---|---|
+| fino v4 (sin lags/ctx/geo) | 0.0255 | 0.8759 | 46.7% |
+| **fino v5 (con lags/ctx/geo)** | **0.0278** | 0.8732 | 42.3% |
+| fusion v4 | 0.0284 | 0.8809 | 50.4% |
+| **fusion v5** | **0.0320** | **0.8847** | 47.4% |
+| balanced-ensemble v5 | 0.0533 | 0.9175 | 54% |
+
+El salto principal está en la FUSIÓN jerárquica: **13.9× azar (antes 12.3×)** —
+los lags de ignición y el contexto espacial fortalecen el nivel regional. El
+balanced-ensemble mantiene su ROC 0.9175 (los lags solo activan en el 1.7% de
+filas: señal escasa pero real).
+
 ## 7. Caminos de mejora (ordenados por ROI estimado)
 
 1. **Optuna del target ≥10 ha ya hecho** — el mayor salto conseguido (49×→62×).
