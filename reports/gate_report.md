@@ -53,12 +53,12 @@ La tesis del documento original queda **demostrada con datos**: el FWI solo es i
 | regional parent-day | 0.1099 | 51% | 0.09 |
 | fino lgbm | 0.108 | 56% | 0.19 |
 | FT-Attention | 0.0614 | 42% | 0.02 |
-| **Balanced-ensemble 25×LGBM (MODELO FINAL)** | **0.055** | **56%** | — |
+| **Balanced-ensemble 25×LGBM (MODELO FINAL, S2 completo)** | **0.0538 · ROC 0.9179** | **54%** | — |
 
 El balanced-ensemble solo bate a la fusión jerárquica con el dataset limpio
 (la señal regional ya está en las features; la fusión la diluía).
 
-**24.4× azar con etiquetas limpias (ROC-AUC 0.908)** — dentro de la banda alta de la literatura (20–50×), comparable al RF del benchmark Kondylatos (0.898) y cerca del ConvLSTM (0.926).
+**0.0538 PR-AUC = 23.4× azar · ROC-AUC 0.9179** (con S2 completo 8/8) — dentro de la banda alta de la literatura (20–50×), por ENCIMA del RF del benchmark Kondylatos (0.898) y cerca del ConvLSTM (0.926).
 
 ## 4. Métricas operativas (las que venden el producto)
 

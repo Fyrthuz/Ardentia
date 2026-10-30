@@ -3,31 +3,31 @@
     "cualquier_ignicion": {
       "prev": 0.0363,
       "fino_solo": {
-        "pr_auc": 0.3034,
-        "roc_auc": 0.8532,
-        "brier": 0.0896,
-        "recall@5%": 0.391,
-        "precision@5%": 0.2842,
-        "recall@1%": 0.166,
-        "precision@1%": 0.6061
+        "pr_auc": 0.3139,
+        "roc_auc": 0.8556,
+        "brier": 0.0783,
+        "recall@5%": 0.394,
+        "precision@5%": 0.2866,
+        "recall@1%": 0.163,
+        "precision@1%": 0.5939
       },
       "regional_solo": {
-        "pr_auc": 0.3138,
-        "roc_auc": 0.8545,
-        "brier": 0.0891,
-        "recall@5%": 0.401,
-        "precision@5%": 0.2914,
-        "recall@1%": 0.18,
-        "precision@1%": 0.6545
+        "pr_auc": 0.3127,
+        "roc_auc": 0.8558,
+        "brier": 0.0778,
+        "recall@5%": 0.408,
+        "precision@5%": 0.2963,
+        "recall@1%": 0.165,
+        "precision@1%": 0.6
       },
       "fusion_rank": {
-        "pr_auc": 0.3116,
-        "roc_auc": 0.8549,
-        "brier": 0.308,
+        "pr_auc": 0.3175,
+        "roc_auc": 0.857,
+        "brier": 0.3077,
         "recall@5%": 0.401,
         "precision@5%": 0.2914,
-        "recall@1%": 0.166,
-        "precision@1%": 0.6061
+        "recall@1%": 0.163,
+        "precision@1%": 0.5939
       },
       "fwi_solo": {
         "pr_auc": 0.07,
@@ -42,29 +42,29 @@
     "big10": {
       "prev": 0.0082,
       "fino_solo": {
-        "pr_auc": 0.1005,
-        "roc_auc": 0.8698,
-        "brier": 0.0193,
-        "recall@5%": 0.511,
-        "precision@5%": 0.0834,
-        "recall@1%": 0.17,
-        "precision@1%": 0.1394
+        "pr_auc": 0.1114,
+        "roc_auc": 0.8738,
+        "brier": 0.0151,
+        "recall@5%": 0.437,
+        "precision@5%": 0.0713,
+        "recall@1%": 0.2,
+        "precision@1%": 0.1636
       },
       "regional_solo": {
-        "pr_auc": 0.1192,
-        "roc_auc": 0.8711,
-        "brier": 0.0193,
-        "recall@5%": 0.519,
-        "precision@5%": 0.0846,
-        "recall@1%": 0.185,
-        "precision@1%": 0.1515
+        "pr_auc": 0.1019,
+        "roc_auc": 0.8617,
+        "brier": 0.015,
+        "recall@5%": 0.444,
+        "precision@5%": 0.0726,
+        "recall@1%": 0.178,
+        "precision@1%": 0.1455
       },
       "fusion_rank": {
-        "pr_auc": 0.1105,
-        "roc_auc": 0.8726,
-        "brier": 0.3255,
-        "recall@5%": 0.511,
-        "precision@5%": 0.0834,
+        "pr_auc": 0.1107,
+        "roc_auc": 0.8697,
+        "brier": 0.3257,
+        "recall@5%": 0.444,
+        "precision@5%": 0.0726,
         "recall@1%": 0.193,
         "precision@1%": 0.1576
       },
