@@ -66,7 +66,7 @@ def cross_with_egif(viirs: pd.DataFrame) -> dict:
 
 
 def main(days: int = 30):
-    key = os.environ.get("FIRMS_MAP_KEY", "DEMO_KEY")
+    key = os.environ.get("MAP_API_KEY", os.environ.get("FIRMS_MAP_KEY", ""))
     OUT.mkdir(parents=True, exist_ok=True)
 
     for source in ("VIIRS_SNPP_NRT", "MODIS_NRT"):

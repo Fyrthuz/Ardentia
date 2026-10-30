@@ -70,9 +70,11 @@
 2. ~~Rebuild dataset final~~ ✅ (267k res9, 72k res8)
 3. ~~Re-evaluar todo~~ ✅ (ROC 0.9179-0.9348)
 4. ~~Regenerar vídeos~~ ✅ (6 resoluciones)
-5. **FIRMS VIIRS labels**: requiere MAP_KEY gratuito (registro en
-   https://firms.modaps.eosdis.nasa.gov/api/map_key/) — el módulo está
-   (`firms_viirs.py`) pero sin key no descarga. Pendiente registro.
+5. **FIRMS VIIRS labels** ✅ módulo funcional (`firms_viirs.py`) con MAP_API_KEY en .env.
+   El NRT solo da 5 días (límite de la API). Para histórico: usar los archivos
+   anuales de FIRMS Archive (https://firms.modaps.eosdis.nasa.gov/download/) o el
+   producto MODIS C6.1 MCD14ML. Las 6 detecciones de octubre confirman que la API
+   funciona. **Pendiente: descarga del histórico anual para labels extra.**
 6. **Spatial block CV** ✅ implementado (`spatial_block_cv.py`): 5-fold KMeans
    blocks, ROC-AUC 0.886±0.041 (temporal 0.892, Ourense 0.783) — el modelo
    generaliza espacialmente.
