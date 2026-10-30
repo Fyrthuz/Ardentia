@@ -1,0 +1,66 @@
+{
+  "temporal_split": {
+    "pr_auc": 0.037,
+    "roc_auc": 0.8919,
+    "brier": 0.0073,
+    "n_pos_test": 137
+  },
+  "transfer_ourense": {
+    "pr_auc": 0.0118,
+    "roc_auc": 0.7833,
+    "brier": 0.0037,
+    "n_pos_test": 49
+  },
+  "spatial_block_cv": {
+    "blocks": [
+      {
+        "pr_auc": 0.0542,
+        "roc_auc": 0.9144,
+        "brier": 0.0034,
+        "n_pos_test": 28,
+        "fold": 0,
+        "n_test": 11775
+      },
+      {
+        "pr_auc": 0.045,
+        "roc_auc": 0.8997,
+        "brier": 0.0014,
+        "n_pos_test": 16,
+        "fold": 1,
+        "n_test": 11916
+      },
+      {
+        "pr_auc": 0.0847,
+        "roc_auc": 0.9273,
+        "brier": 0.0032,
+        "n_pos_test": 15,
+        "fold": 2,
+        "n_test": 11872
+      },
+      {
+        "pr_auc": 0.0307,
+        "roc_auc": 0.8783,
+        "brier": 0.0043,
+        "n_pos_test": 34,
+        "fold": 3,
+        "n_test": 11353
+      },
+      {
+        "pr_auc": 0.023,
+        "roc_auc": 0.8102,
+        "brier": 0.0083,
+        "n_pos_test": 44,
+        "fold": 4,
+        "n_test": 13582
+      }
+    ],
+    "summary": {
+      "mean_pr_auc": 0.0475,
+      "std_pr_auc": 0.0215,
+      "mean_roc_auc": 0.886,
+      "std_roc_auc": 0.0412,
+      "n_folds": 5
+    }
+  },
+  "n_blocks": 5
+}

@@ -66,6 +66,18 @@
 
 ## Pendiente día siguiente (2026-10-30)
 
+1. ~~TIFFs S2 2023/2024~~ ✅ (8/8, transform arreglado)
+2. ~~Rebuild dataset final~~ ✅ (267k res9, 72k res8)
+3. ~~Re-evaluar todo~~ ✅ (ROC 0.9179-0.9348)
+4. ~~Regenerar vídeos~~ ✅ (6 resoluciones)
+5. **FIRMS VIIRS labels**: requiere MAP_KEY gratuito (registro en
+   https://firms.modaps.eosdis.nasa.gov/api/map_key/) — el módulo está
+   (`firms_viirs.py`) pero sin key no descarga. Pendiente registro.
+6. **Spatial block CV** ✅ implementado (`spatial_block_cv.py`): 5-fold KMeans
+   blocks, ROC-AUC 0.886±0.041 (temporal 0.892, Ourense 0.783) — el modelo
+   generaliza espacialmente.
+7. **CNN-2D parches espaciales**: pendiente (Ronda 3, el salto DL real)
+
 1. **TIFFs S2 2023/2024 pendientes** (solo hay 2017–2022; el proceso quedó a medias al
    cancelar): regenerar con `uv run python -m ardintra.ingest.s2_stac 2023 2024` (~25 min).
    ⚠️ El 2023 es necesario para las features satelitales del TEST 2024 (prev-summer).
