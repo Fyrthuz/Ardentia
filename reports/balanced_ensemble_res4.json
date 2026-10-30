@@ -1,17 +1,17 @@
 {
   "baseline_single": {
-    "pr_auc": 0.226,
-    "roc_auc": 0.8534,
-    "recall_top5": 0.24,
-    "recall_top1": 0.074,
-    "brier": 0.0534
+    "pr_auc": 0.2337,
+    "roc_auc": 0.8614,
+    "recall_top5": 0.256,
+    "recall_top1": 0.083,
+    "brier": 0.051
   },
   "balanced_ensemble": {
-    "pr_auc": 0.2656,
-    "roc_auc": 0.8757,
-    "recall_top5": 0.298,
-    "recall_top1": 0.074,
-    "brier": 0.1235,
+    "pr_auc": 0.2747,
+    "roc_auc": 0.8833,
+    "recall_top5": 0.306,
+    "recall_top1": 0.091,
+    "brier": 0.1074,
     "n_models": 25
   },
   "target": "big>=10ha"

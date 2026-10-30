@@ -1,0 +1,52 @@
+{
+  "targets": {
+    "cualquier_ignicion": {
+      "prev_test": 0.0097,
+      "modelo_raw_sin_calibrar": {
+        "pr_auc": 0.1792,
+        "lift": 18.5,
+        "roc": 0.8752,
+        "brier": 0.05
+      },
+      "bayes_posterior": {
+        "pr_auc": 0.1792,
+        "lift": 18.5,
+        "roc": 0.8752,
+        "brier": 0.0265
+      },
+      "prior_como_feature": {
+        "pr_auc": 0.1051,
+        "lift": 10.9,
+        "roc": 0.7786,
+        "brier": 0.0398
+      },
+      "fwi_solo": {
+        "pr_auc": 0.0167
+      }
+    },
+    "big10": {
+      "prev_test": 0.0023,
+      "modelo_raw_sin_calibrar": {
+        "pr_auc": 0.0256,
+        "lift": 11.3,
+        "roc": 0.875,
+        "brier": 0.0087
+      },
+      "bayes_posterior": {
+        "pr_auc": 0.0256,
+        "lift": 11.3,
+        "roc": 0.875,
+        "brier": 0.0049
+      },
+      "prior_como_feature": {
+        "pr_auc": 0.024,
+        "lift": 10.6,
+        "roc": 0.8277,
+        "brier": 0.0063
+      },
+      "fwi_solo": {
+        "pr_auc": 0.0053
+      }
+    }
+  }
+}

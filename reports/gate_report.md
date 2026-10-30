@@ -95,6 +95,24 @@ regional ya la captura el parent-day del jerárquico).
 → 61% de los fuegos que queman ≥10 ha; 12× la precisión del estado del arte vigente".
 Para aseguradoras/utilidades ese KPI es el que se compra.
 
+## 6b. Post-proceso bayesiano (prior climático × evidencia del modelo)
+
+Propuesta del usuario implementada: prior = tasa histórica de ignición por celda
+(suavizada por anillos + estacionalidad mensual); evidencia = score del modelo;
+posterior = logit(prior) + log(LR). Resultados:
+
+| Target | Variante | PR-AUC | ROC | **Brier** |
+|---|---|---|---|---|
+| ignición | modelo solo | 0.1792 | 0.8752 | 0.0500 |
+| ignición | **posterior bayesiano** | 0.1792 | 0.8752 | **0.0265 (−47%)** |
+| ≥10 ha | modelo solo | 0.0256 | 0.8750 | 0.0087 |
+| ≥10 ha | **posterior bayesiano** | 0.0256 | 0.8750 | **0.0049 (−44%)** |
+
+**Conclusión**: el posterior NO cambia el ranking (el modelo ya subsume el prior
+espacial vía estáticas+recencia) pero **mejora la CALIBRACIÓN un 45%** (Brier a la
+mitad) — las probabilidades mostradas pasan a estar ancladas a la climatología
+real. Se adopta para TODA visualización de probabilidades (vídeo/API).
+
 ## 7. Caminos de mejora (ordenados por ROI estimado)
 
 1. **Optuna del target ≥10 ha ya hecho** — el mayor salto conseguido (49×→62×).

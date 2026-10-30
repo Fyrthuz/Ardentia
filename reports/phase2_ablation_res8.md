@@ -2,12 +2,12 @@
 
 | Modelo | PR-AUC temporal | recall@5% | PR-AUC transfer (Ourense) |
 |---|---|---|---|
-| M0_fwi_solo | 0.1072 | 0.093 | 0.1223 |
-| M1_fwi_met | 0.3182 | 0.319 | 0.4595 |
-| M2_satelite | 0.3217 | 0.317 | 0.4552 |
-| M3_estaticas | 0.3598 | 0.338 | 0.498 |
-| M4_viaria | 0.378 | 0.353 | 0.5141 |
-| M4b_interacciones | 0.377 | 0.356 | 0.5173 |
+| M0_fwi_solo | 0.07 | 0.098 | 0.0756 |
+| M1_fwi_met | 0.2577 | 0.364 | 0.3785 |
+| M2_satelite | 0.2704 | 0.363 | 0.3798 |
+| M3_estaticas | 0.301 | 0.388 | 0.4091 |
+| M4_viaria | 0.3081 | 0.391 | 0.4219 |
+| M4b_interacciones | 0.2945 | 0.374 | 0.4116 |
 
-Δ (M4−M3) temporal: **0.0182**
-Δ (M4b−M3) temporal: **0.0172**
+Δ (M4−M3) temporal: **0.0071**
+Δ (M4b−M3) temporal: **-0.0065**
