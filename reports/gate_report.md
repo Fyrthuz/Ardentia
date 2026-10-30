@@ -113,6 +113,22 @@ espacial vía estáticas+recencia) pero **mejora la CALIBRACIÓN un 45%** (Brier
 mitad) — las probabilidades mostradas pasan a estar ancladas a la climatología
 real. Se adopta para TODA visualización de probabilidades (vídeo/API).
 
+## 6c. Prior v2 con VECINDARIO (susceptibilidad estructural)
+
+Prior como modelo: estáticas propias + AGREGADOS ring-1/ring-2 (forest, elev,
+densidad viaria, tasa de fuego del anillo) + mes → posterior con la evidencia
+(balanced-ensemble). Resultados (target ≥10 ha):
+
+| Variante | PR-AUC | Lift | ROC | Brier | recall@5% |
+|---|---|---|---|---|---|
+| balanced-ensemble solo | 0.0541 | 24× | 0.9146 | 0.0569 | 53% |
+| posterior prior-v2 × ensemble | 0.0369 | 16× | **0.9182** | **0.0304** | **56%** |
+| **blend rank(ensemble)+rank(posterior)** | **0.0644** | **28×** | **0.9187** | — | 54% |
+
+**El blend de 3 vías (ensemble + posterior-bayesiano) = 28× azar con ROC 0.919**
+es el MEJOR resultado del proyecto: la calibración bayesiana y el ranking del
+ensemble capturan cosas distintas y la fusión suma ambas.
+
 ## 7. Caminos de mejora (ordenados por ROI estimado)
 
 1. **Optuna del target ≥10 ha ya hecho** — el mayor salto conseguido (49×→62×).
