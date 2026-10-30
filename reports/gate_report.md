@@ -167,6 +167,25 @@ La explicación: el balanced-ensemble domina el RANKING (28× lift); el posterio
 bayesiano domina la CALIBRACIÓN (Brier 0.029 vs 0.055). La fusión rank combina
 ambas: el ranking del ensemble + la calibración del prior. El FWI vigente: ROC 0.67.
 
+## 6f. Post-proceso regional: agregación de celdas a nivel región
+
+La pregunta operativa: "¿va a haber un fuego EN ESTA ZONA?" — se responde
+agregando las probabilidades de celda a nivel región (H3 res7 parent).
+
+| Enfoque | PR-AUC | Lift | ROC | recall@5% |
+|---|---|---|---|---|
+| **max(p_cell) en la región** | **0.0648** | **29×** | **0.9179** | **67%** |
+| LGBM sobre features regionales | 0.0298 | 13× | 0.2749 | 19% |
+
+**Conclusión**: el max(p_cell) es el mejor predictor regional — no necesita modelo
+adicional. La probabilidad máxima de celda dentro de la región YA captura la señal.
+El LGBM regional pierde información (la relación no-lineal entre max(p) y el fuego
+regional ya está capturada por el modelo de celda).
+
+**Producto**: la alerta operativa tiene dos niveles:
+1. **Región (res7 parent)**: "esta zona tiene riesgo de fuego hoy" → max(p_cell)
+2. **Celda (res9)**: "esta celda específica es la más peligrosa de la zona" → ranking por p_cell
+
 ## 7. Caminos de mejora (ordenados por ROI estimado)
 
 1. **Optuna del target ≥10 ha ya hecho** — el mayor salto conseguido (49×→62×).

@@ -1,0 +1,18 @@
+{
+  "prev_regional_test": 0.0022,
+  "n_regions_test": 5621,
+  "baseline_max_p": {
+    "pr_auc": 0.0648,
+    "lift": 28.9,
+    "roc_auc": 0.9179,
+    "recall_top5": 0.669,
+    "brier": 0.0065
+  },
+  "modelo_regional": {
+    "pr_auc": 0.0298,
+    "lift": 13.3,
+    "roc_auc": 0.2749,
+    "recall_top5": 0.192,
+    "brier": 0.0029
+  }
+}
