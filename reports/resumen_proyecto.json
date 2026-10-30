@@ -1,0 +1,43 @@
+{
+  "fecha": "2026-10-30",
+  "mejor_modelo": {
+    "arquitectura": "balanced-ensemble 25×LGBM + posterior bayesiano (prior v2 vecindario) blend",
+    "target": "≥10 ha",
+    "roc_auc": 0.9348,
+    "lift": "28× azar",
+    "recall_top5": "61%",
+    "benchmark": "ConvLSTM 0.926 · RF 0.898 · NHESS 0.81 · FWI 0.67"
+  },
+  "experiments": {
+    "adoptados": [
+      "balanced-ensemble 25×LGBM (Texas-2025)",
+      "hard negatives estratificados (WUS-2025)",
+      "features sequía SPEI+anomalías (México-2021/NHESS-2025)",
+      "recencia días desde último fuego",
+      "lags autoregresivos PAR-P (Martínez-Galicia)",
+      "contexto espacial ring-k (CNN-2D tabular)",
+      "geo/DOY sinusoidal (LOAN-2023)",
+      "posterior bayesiano prior×evidencia (calibración Brier -47%)",
+      "prior v2 susceptibilidad vecindario"
+    ],
+    "descartados": [
+      "LSTM temporal (5.2× vs 24× LGBM)",
+      "FT-Attention (15.6× vs 20.8× LGBM)",
+      "CNN-2D parches (3× vs 24× LGBM)",
+      "Clusters por región (peor que global)",
+      "Embeddings satelitales (fuera de scope)"
+    ]
+  },
+  "resoluciones": {
+    "res9": "producción (ROC 0.918, lift 24×)",
+    "res8": "presentación regional (ROC 0.902)"
+  },
+  "validacion": {
+    "temporal": "train 2017-22 / test 23-24",
+    "transfer_ourense": "ROC 0.783",
+    "spatial_block_cv": "ROC 0.886±0.041 (5 folds)"
+  },
+  "firms": {
+    "status": "NRT API funciona (122 chunks, sin rate-limit issues) pero solo 5 días de histórico — para labels históricos usar MODIS C6.1 archive"
+  }
+}
