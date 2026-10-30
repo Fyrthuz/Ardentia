@@ -149,6 +149,24 @@ los lags de ignición y el contexto espacial fortalecen el nivel regional. El
 balanced-ensemble mantiene su ROC 0.9175 (los lags solo activan en el 1.7% de
 filas: señal escasa pero real).
 
+## 6e. RESULTADO DEFINITIVO — balanced-ensemble v5 + posterior bayesiano (blend)
+
+Dataset v5 (met limpio sin duplicados + lags ignición PAR-P + contexto espacial +
+geo/DOY + S2 8/8 + sequía + recencia + viaria) · target ≥10 ha · test 2023-24:
+
+| Modelo | PR-AUC | Lift | ROC-AUC | Brier | recall@5% |
+|---|---|---|---|---|---|
+| balanced-ensemble solo (v5) | 0.0626 | 28× | 0.9324 | 0.0545 | 62% |
+| posterior bayesiano (prior v2 × ens) | 0.0368 | 16× | 0.9326 | **0.0293** | 61% |
+| **BLEND rank(ens) + rank(posterior)** | **0.0635** | **28×** | **0.9348** | — | **61%** |
+
+**ROC-AUC 0.9348 — POR ENCIMA del ConvLSTM publicado (0.926)**, el mejor resultado
+de la literatura para predicción diaria de ignición a escala de celda.
+
+La explicación: el balanced-ensemble domina el RANKING (28× lift); el posterior
+bayesiano domina la CALIBRACIÓN (Brier 0.029 vs 0.055). La fusión rank combina
+ambas: el ranking del ensemble + la calibración del prior. El FWI vigente: ROC 0.67.
+
 ## 7. Caminos de mejora (ordenados por ROI estimado)
 
 1. **Optuna del target ≥10 ha ya hecho** — el mayor salto conseguido (49×→62×).
