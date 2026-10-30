@@ -3,13 +3,13 @@
     "cualquier_ignicion": {
       "prev": 0.0097,
       "fino_solo": {
-        "pr_auc": 0.1829,
-        "roc_auc": 0.8765,
-        "brier": 0.0496,
-        "recall@5%": 0.516,
-        "precision@5%": 0.0999,
-        "recall@1%": 0.243,
-        "precision@1%": 0.2351
+        "pr_auc": 0.1774,
+        "roc_auc": 0.8724,
+        "brier": 0.0494,
+        "recall@5%": 0.468,
+        "precision@5%": 0.0906,
+        "recall@1%": 0.238,
+        "precision@1%": 0.2301
       },
       "regional_solo": {
         "pr_auc": 0.1701,
@@ -21,13 +21,13 @@
         "precision@1%": 0.2252
       },
       "fusion_rank": {
-        "pr_auc": 0.1795,
-        "roc_auc": 0.8756,
-        "brier": 0.325,
-        "recall@5%": 0.503,
-        "precision@5%": 0.0972,
-        "recall@1%": 0.248,
-        "precision@1%": 0.2401
+        "pr_auc": 0.1775,
+        "roc_auc": 0.8735,
+        "brier": 0.3251,
+        "recall@5%": 0.491,
+        "precision@5%": 0.0949,
+        "recall@1%": 0.239,
+        "precision@1%": 0.2318
       },
       "fwi_solo": {
         "pr_auc": 0.0167,
@@ -42,13 +42,13 @@
     "big10": {
       "prev": 0.0023,
       "fino_solo": {
-        "pr_auc": 0.0278,
-        "roc_auc": 0.8732,
-        "brier": 0.0087,
-        "recall@5%": 0.423,
-        "precision@5%": 0.0192,
-        "recall@1%": 0.226,
-        "precision@1%": 0.0513
+        "pr_auc": 0.0279,
+        "roc_auc": 0.8777,
+        "brier": 0.0084,
+        "recall@5%": 0.445,
+        "precision@5%": 0.0202,
+        "recall@1%": 0.219,
+        "precision@1%": 0.0497
       },
       "regional_solo": {
         "pr_auc": 0.0299,
@@ -60,13 +60,13 @@
         "precision@1%": 0.0513
       },
       "fusion_rank": {
-        "pr_auc": 0.032,
-        "roc_auc": 0.8847,
-        "brier": 0.3264,
-        "recall@5%": 0.474,
-        "precision@5%": 0.0215,
-        "recall@1%": 0.212,
-        "precision@1%": 0.048
+        "pr_auc": 0.0317,
+        "roc_auc": 0.8868,
+        "brier": 0.3262,
+        "recall@5%": 0.482,
+        "precision@5%": 0.0218,
+        "recall@1%": 0.204,
+        "precision@1%": 0.0464
       },
       "fwi_solo": {
         "pr_auc": 0.0053,

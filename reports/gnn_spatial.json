@@ -1,0 +1,11 @@
+{
+  "pr_auc": 0.0489,
+  "roc_auc": 0.7982,
+  "brier": 0.2042,
+  "recall_top5": 0.288,
+  "lift": 5.4,
+  "best_epoch": 13,
+  "n_nodes": 161134,
+  "nota": "evaluaci\u00f3n node-level (susceptibilidad), no comparable 1:1 con LGBM per-(cell,day)",
+  "target": "big10"
+}
