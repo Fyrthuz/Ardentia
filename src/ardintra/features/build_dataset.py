@@ -181,11 +181,14 @@ def _offset_cell(lat, lon, dist_m, bearing):
     return h3.latlng_to_cell(lat + dlat, lon + dlon, 9)
 
 
-def _negatives(ig: pd.DataFrame, cells: pd.DataFrame, rng: np.random.Generator) -> pd.DataFrame:
-    """Tres tiers (literatura WUS-2025/FireCastRL): random diario + NEAR-SPACE
+def _negatives(ig: pd.DataFrame, cells: pd.DataFrame, rng: np.random.Generator,
+               high_danger_days: set | None = None) -> pd.DataFrame:
+    """Cuatro tiers (literatura WUS-2025/FireCastRL/Mesogeos): random diario + NEAR-SPACE
     (celdas a 1-3 km de un fuego del MISMO día: mismas condiciones, sin ignición)
     + NEAR-TIME (la misma celda 8-21 días ANTES del fuego: fuel similar, futuro
-    sin look-ahead). El filtro de contaminación limpia solapes."""
+    sin look-ahead) + HIGH-DANGER-SITE (Pourmohamad 2025: en días de FWI extremo,
+    celdas con igniciones históricas de años anteriores que NO arden — el hard negative
+    que calibra el régimen de alto peligro). El filtro de contaminación limpia solapes."""
     nonfire, prov_by_cell = _negative_pool(cells, ig)
     rows = []
     rango = pd.date_range("2017-01-01", "2024-12-31", freq="D")
@@ -200,6 +203,7 @@ def _negatives(ig: pd.DataFrame, cells: pd.DataFrame, rng: np.random.Generator) 
                                   "provincia": [prov_by_cell.get(c) for c in sample]}))
 
     # tier NEAR-SPACE: mismo día, anillo 1-3 km alrededor de fuegos
+    # (v1: 40/día y 8 fuegos fuente; el doblado v1.5 empeoró el modelo — ver nota abajo)
     day_fires = fires.set_index(fires["fecha"].dt.normalize())
     for day, g in day_fires.groupby(level=0):
         n_near = min(40, len(g) * 3)
@@ -227,6 +231,35 @@ def _negatives(ig: pd.DataFrame, cells: pd.DataFrame, rng: np.random.Generator) 
         "motivation": pd.NA, "provincia": fs["provincia"].to_numpy(),
     })
     rows.append(pre)
+
+    # tier HIGH-DANGER-SITE (Pourmohamad 2025): días de FWI extremo, celdas con
+    # igniciones históricas de años ANTERIORES (sin look-ahead) que no arden ese día.
+    # NOTA v2: la ablación mostró que este tier + near-space doblado EMPEORAN el modelo
+    # (AUC 0.897→0.881, más conservativo, menos recall). Desactivado por defecto;
+    # activar con ARDENTIA_HARDNEG=1 para experimentación.
+    if high_danger_days and os.environ.get("ARDENTIA_HARDNEG") == "1":
+        sites_by_year = {}
+        fy = fires.assign(_y=fires["fecha"].dt.year)
+        for y in sorted(fy["_y"].unique()):
+            sites_by_year[y] = set(fy.loc[fy["_y"] < y, "h9"])
+        hd_rows = []
+        for day in sorted(high_danger_days):
+            sites = sites_by_year.get(day.year, set())
+            if not sites:
+                continue
+            sites = np.array(sorted(sites))
+            k_hd = min(60, len(sites))
+            sample = rng.choice(sites, size=k_hd, replace=False)
+            hd_rows.append(pd.DataFrame({
+                "h9": sample, "fecha": day, "fire_id": None, "source": "neg_hd",
+                "surface_ha": np.nan, "cause": pd.NA, "motivation": pd.NA,
+                "provincia": [prov_by_cell.get(c) for c in sample]}))
+        if hd_rows:
+            hd = pd.concat(hd_rows, ignore_index=True)
+            hd = hd.drop_duplicates(subset=["h9", "fecha"])
+            rows.append(hd)
+            print(f"tier high-danger-site: {len(hd):,} negativos en {len(high_danger_days)} días FWI p90")
+
     neg = pd.concat(rows, ignore_index=True)
     # 🔥 excluir contaminación por propagación (mismo incendio reciente cerca)
     neg = neg.drop_duplicates(subset=["h9", "fecha"])
@@ -234,6 +267,47 @@ def _negatives(ig: pd.DataFrame, cells: pd.DataFrame, rng: np.random.Generator) 
     neg = neg[~dirty].reset_index(drop=True)
     print(f"negativos: {len(neg):,} tras descartar {dirty.sum():,} contaminados por fuego cercano")
     return neg
+
+
+def _cause_density_features(pairs: pd.DataFrame, ig: pd.DataFrame,
+                            cells: pd.DataFrame) -> pd.DataFrame:
+    """Densidad histórica de igniciones por causa (Gelabert 2025 / Gómez-Pazo 2025):
+    para cada fila, nº de igniciones de la clase C en radio 5 km en años ANTERIORES
+    (sin look-ahead). Clases: humano (3xx negligencia + 4xx intencionada),
+    rayo (1xx), otra (2xx desconocida, 5xx reproducción, 6xx otras).
+    EGIF: idcausa 100=rayo, 2xx=desconocida, 3xx=negligencias, 4xx=intencionada,
+    5xx=reproducción, 6xx=otras."""
+    from scipy.spatial import cKDTree as KD  # noqa: PLC0415
+
+    igc = ig.dropna(subset=["h9", "cause"]).copy()
+    igc["cause"] = pd.to_numeric(igc["cause"], errors="coerce")
+    igc = igc[igc["cause"].notna()]
+    igc = igc.merge(cells[["h9", "lat", "lon"]], on="h9", how="left").dropna(subset=["lat", "lon"])
+    igc["_cls"] = np.select(
+        [igc["cause"].between(300, 499), igc["cause"].between(100, 199)],
+        ["hum", "rayo"], default="otra")
+
+    cell_ll = np.radians(cells[["lat", "lon"]].to_numpy())
+    cell_idx = {h: i for i, h in enumerate(cells["h9"])}
+    r5 = 5000.0 / 6_371_000.0
+    rows_idx = np.array([cell_idx.get(h, -1) for h in pairs["h9"]])
+    years = pd.to_datetime(pairs["fecha"]).dt.year.to_numpy()
+
+    out = pd.DataFrame(index=pairs.index)
+    for cls in ("hum", "rayo", "otra"):
+        cnt = np.zeros(len(pairs))
+        sub = igc[igc["_cls"] == cls]
+        for y in np.unique(years):
+            hist = sub[sub["fecha"].dt.year < y]
+            m = years == y
+            if not m.any() or hist.empty:
+                continue
+            tree = KD(np.radians(hist[["lat", "lon"]].to_numpy()))
+            pts = cell_ll[rows_idx[m]]
+            hits = tree.query_ball_point(pts, r5, workers=-1)
+            cnt[m] = [len(h) for h in hits]
+        out[f"dens_ign_{cls}_5k"] = np.log1p(cnt).round(4)
+    return out
 
 
 def _met_features(pairs: pd.DataFrame, met: pd.DataFrame, cells: pd.DataFrame) -> pd.DataFrame:
@@ -405,10 +479,11 @@ def run() -> pd.DataFrame:
     ef["fecha"] = pd.to_datetime(ef["fecha"]).dt.normalize()
     ef = ef.rename(columns={"surface_ha": "surface_ha"})
     pos = pd.concat([
-        ig[["h9", "fecha", "fire_id", "source", "surface_ha", "provincia"]],
+        ig[["h9", "fecha", "fire_id", "source", "surface_ha", "provincia", "cause", "motivation"]],
         ef.assign(source="effis", fire_id=ef["fire_id"].astype(str), superficie2=ef["surface_ha"],
                   provincia=ef["provincia"])[["h9", "fecha", "fire_id", "source", "superficie2", "provincia"]]
-        .rename(columns={"superficie2": "surface_ha"}),
+        .rename(columns={"superficie2": "surface_ha"})
+        .assign(cause=pd.NA, motivation=pd.NA),
     ], ignore_index=True)
     # provincia canónica (EGIF: ourense/a_coruna...; EFFIS venía en title-case con tildes)
     pos["provincia"] = (
@@ -423,7 +498,17 @@ def run() -> pd.DataFrame:
         pos = pos.sort_values("surface_ha", ascending=False).drop_duplicates(["h9", "fecha"], keep="first")
     pos = pos[pos["h9"].isin(set(cells["h9"]))]
 
-    neg = _negatives(pos, cells, rng)
+    met = load_met_stations()
+    print(f"met consolidada: {met['idema'].nunique()} estaciones, {met['fecha'].nunique()} días")
+
+    # días de FWI extremo (p90 de la temporada) para el tier high-danger-site
+    fwi_day = met.groupby("fecha")["fwi"].mean()
+    season = fwi_day[fwi_day.index.month.isin([5, 6, 7, 8, 9, 10])]
+    thr_hd = season.quantile(0.90)
+    high_danger_days = {d.date() for d in season[season >= thr_hd].index}
+    print(f"días FWI≥p90 ({thr_hd:.1f}): {len(high_danger_days)} → tier high-danger-site")
+
+    neg = _negatives(pos, cells, rng, high_danger_days=high_danger_days)
     pairs = pd.concat([pos, neg], ignore_index=True)
     pairs["_is_pos"] = pairs["source"] != "neg"
     pairs = (pairs.sort_values("_is_pos", ascending=False)
@@ -431,9 +516,6 @@ def run() -> pd.DataFrame:
              .drop(columns="_is_pos")
              .reset_index(drop=True))   # CRÍTICO: asignaciones .loc[i] posicionales aguas abajo
     print(f"pares: {len(pos):,} positivos + {len(neg):,} negativos = {len(pairs):,}")
-
-    met = load_met_stations()
-    print(f"met consolidada: {met['idema'].nunique()} estaciones, {met['fecha'].nunique()} días")
     pairs["fecha"] = pd.to_datetime(pairs["fecha"])
 
     feat_met = _met_features(pairs, met, cells)
@@ -450,6 +532,8 @@ def run() -> pd.DataFrame:
     print("fire-lags: n_ign_cell_3d>0 en", f"{(feat_lag['n_ign_cell_3d'] > 0).mean():.1%} de filas")
     feat_ctx = spatial_context_features(pairs, cells)
     feat_geo = geo_features(pairs, cells)
+    feat_cause = _cause_density_features(pairs, ig.dropna(subset=["h9"]), cells)
+    print("densidad por causa:", {c: round(float(feat_cause[c].mean()), 3) for c in feat_cause.columns})
     feat_s2 = _s2_features_prev_summer(pairs, cells)
     print("s2 features:", ~(feat_s2.isna().all()) if False else "mostradas abajo")
     print(feat_s2.notna().mean().round(3).to_dict())
@@ -463,7 +547,8 @@ def run() -> pd.DataFrame:
     df = pd.concat([df.reset_index(drop=True), feat_met.reset_index(drop=True),
                     feat_era5.reset_index(drop=True), feat_s2.reset_index(drop=True),
                     feat_rec.reset_index(drop=True), feat_lag.reset_index(drop=True),
-                    feat_ctx.reset_index(drop=True), feat_geo.reset_index(drop=True)], axis=1)
+                    feat_ctx.reset_index(drop=True), feat_geo.reset_index(drop=True),
+                    feat_cause.reset_index(drop=True)], axis=1)
     # normalización: fire_id puede traer listas (EGIF celda-día multiembro)
     df["fire_id"] = df["fire_id"].apply(
         lambda x: ";".join(map(str, x)) if isinstance(x, (list, tuple, np.ndarray))
@@ -471,6 +556,9 @@ def run() -> pd.DataFrame:
     )
     df["cause"] = pd.to_numeric(df["cause"], errors="coerce").astype("Int16")
     df["motivation"] = pd.to_numeric(df["motivation"], errors="coerce").astype("Int16")
+    # clases de causa para análisis/modelos separados (solo positivos tienen causa)
+    df["es_humana"] = df["cause"].between(300, 499).fillna(False).astype(int)
+    df["es_rayo"] = df["cause"].between(100, 199).fillna(False).astype(int)
     # antrópico-temporal: finde y su interacción con la red viaria
     dw = pd.to_datetime(df["fecha"]).dt.dayofweek
     df["es_finde"] = (dw >= 5).astype(int)

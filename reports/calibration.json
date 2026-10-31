@@ -1,0 +1,7 @@
+{
+  "brier_raw": 0.011815,
+  "brier_calibrado": 0.006522,
+  "n_cal": 34457,
+  "n_fuegos_cal": 234,
+  "nota": "isot\u00f3nica ajustada con modelo <=2021 sobre a\u00f1o 2022"
+}

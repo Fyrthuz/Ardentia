@@ -1,0 +1,14 @@
+{
+  "k_frailty": 6.378,
+  "ll_2023_poisson": -99.39,
+  "ll_2023_nb": -97.66,
+  "ll_2024_poisson": -32.87,
+  "ll_2024_nb": -34.49,
+  "conformal": {
+    "alpha": 0.1,
+    "qhat": 0.938765,
+    "tam_medio": 5007.7,
+    "cobertura_2024": 1.0,
+    "n_fuegos_region_2024": 33
+  }
+}
