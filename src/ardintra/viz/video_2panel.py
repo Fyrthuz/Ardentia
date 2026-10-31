@@ -151,24 +151,32 @@ def main(year: int = 2023):
     p_smooth_all = p_raw_all
     p_cal_all = iso.predict(p_smooth_all)
 
-    # recalibración REGIONAL: isotónica sobre P(>=1) Poisson cruda vs fuego real (año 2023)
-    # + referencia de percentiles para colorear regiones
+    # recalibración REGIONAL: Stage 2 (GLM + Moran Eigenvector Maps, reports/stage2_model.npz)
+    # μ_r = exp(α + β·log(1+λ_raw) + MEM·γ) → P(≥1) = 1-exp(-μ); fallback: Poisson cruda
     REG_PARQ = Path("reports/fullgrid_regional.parquet")
-    reg_ref_pct = [0.50, 0.90, 0.97]
+    S2_MODEL = Path("reports/stage2_model.npz")
     iso_reg = None
+    s2 = None
     base_rate_reg = 0.0003
-    if REG_PARQ.exists():
+    if S2_MODEL.exists() and REG_PARQ.exists():
+        s2m = np.load(S2_MODEL, allow_pickle=True)
+        s2_regions = list(s2m["regions"]); s2_mem = s2m["mem"]
+        s2_coef, s2_b0 = s2m["coef"], float(s2m["intercept"])
+        s2_idx = {r: i for i, r in enumerate(s2_regions)}
         regall = pd.read_parquet(REG_PARQ)
-        regall["hubo"] = (regall["n_fuegos_obs"] > 0).astype(int)
-        iso_reg = IsotonicRegression(out_of_bounds="clip").fit(
-            regall["p_alguno"], regall["hubo"])
-        base_rate_reg = float(regall["hubo"].mean())
-        p_reg_ref = iso_reg.predict(regall["p_alguno"])
-        reg_ref_thr = list(np.quantile(p_reg_ref, reg_ref_pct))
-        print(f"recalibración regional cargada · base rate region-día = {base_rate_reg:.5f}")
+        base_rate_reg = float((regall["n_fuegos_obs"] > 0).mean())
+        ri_all = regall["r7"].map(s2_idx).to_numpy()
+        ok = ri_all >= 0
+        feat = np.zeros((len(regall), 1 + s2_mem.shape[1]))
+        feat[ok, 0] = np.log1p(regall["lam"].to_numpy()[ok])
+        feat[ok, 1:] = s2_mem[ri_all[ok]]
+        p_ref = 1 - np.exp(-np.exp(s2_b0 + feat @ s2_coef))
+        reg_ref_thr = list(np.quantile(p_ref, [0.50, 0.90, 0.97]))
+        print(f"Stage 2 cargado ({s2_mem.shape[1]} MEM) · base rate region-día = {base_rate_reg:.5f}")
     else:
+        s2_regions, s2_mem, s2_coef, s2_b0, s2_idx = [], None, None, 0.0, {}
         reg_ref_thr = [0.0001, 0.0003, 0.0008]
-        print("AVISO: sin reports/fullgrid_regional.parquet — niveles regionales por defecto")
+        print("AVISO: sin reports/stage2_model.npz — fallback Poisson cruda")
 
     # niveles por percentil vs referencia de temporada
     pct_rank_all = np.searchsorted(val_sorted, p_cal_all, side="right") / n_ref
@@ -206,25 +214,33 @@ def main(year: int = 2023):
         nivel_day = np.digitize(pct_rank_day, [0.40, 0.75, 0.90, 0.97])
         day_colors = RAMP[nivel_day]
 
-        # regional: P(>=1 fuego >=10 ha) por parent7 via Poisson: 1 - exp(-sum(p_cal))
+        # regional: Stage 2 — μ_r = exp(α + β·log(1+λ) + MEM·γ), P(≥1) = 1-exp(-μ)
         # los feats del día tienen una fila por CELDA (no por dataset row) → 1:1 con los polígonos
         feats["p_cal_day"] = p_cal_day
         feats["parent7"] = [h3.cell_to_parent(x, 7) for x in feats["h9"]]
         reg_agg = feats.groupby("parent7")["p_cal_day"].agg(lam="sum", p_max="max")
         reg_lam = np.array([reg_agg["lam"].get(h, 0.0) for h in unique_r7])
-        reg_p_raw = 1.0 - np.exp(-reg_lam)  # P(al menos 1 fuego en la región) cruda
-        # recalibración regional (isotónica 2023) — corrige la sobreenconfianza del full-grid
-        reg_p = iso_reg.predict(reg_p_raw) if iso_reg is not None else reg_p_raw
-        # niveles por percentil de la distribución regional recalibrada
-        reg_pct = np.searchsorted(np.sort(p_reg_ref), reg_p, side="right") / len(p_reg_ref) \
-            if iso_reg is not None else reg_p / max(reg_ref_thr[-1], 1e-9)
-        reg_nivel = np.digitize(reg_pct, list(reg_ref_pct))
+        if s2_mem is not None:
+            lam_feat = np.log1p(reg_lam)
+            ri_v = np.array([s2_idx.get(h, -1) for h in unique_r7])
+            mu = np.zeros(len(unique_r7))
+            known = ri_v >= 0
+            mu[known] = np.exp(s2_b0 + s2_coef[0] * lam_feat[known]
+                               + s2_mem[ri_v[known]] @ s2_coef[1:])
+            reg_p = 1.0 - np.exp(-mu)                     # P(≥1 fuego en la región)
+            lam_total = float(mu.sum())                   # Nº esperado de fuegos (honesto)
+        else:
+            reg_p = 1.0 - np.exp(-reg_lam)
+            lam_total = float(reg_lam.sum())
+        # niveles por percentil de la distribución regional Stage 2
+        reg_pct = np.searchsorted(np.sort(p_ref), reg_p, side="right") / len(p_ref) \
+            if s2_mem is not None else reg_p / max(reg_ref_thr[-1], 1e-9)
+        reg_nivel = np.digitize(reg_pct, [0.50, 0.90, 0.97])
         reg_colors = RAMP[reg_nivel]
         # celdas: percentil vs referencia de temporada (las p por celda son diminutas)
         pct_rank_day = np.searchsorted(val_sorted, p_cal_day, side="right") / n_ref
         nivel_day = np.digitize(pct_rank_day, [0.40, 0.75, 0.90, 0.97])
         day_colors = RAMP[nivel_day]
-        lam_total = float(-np.log1p(-np.clip(reg_p, None, 0.999)).sum()) if iso_reg is not None else float(reg_lam.sum())
 
         fires_day = ig[pd.to_datetime(ig["deteccion"]).dt.normalize() == day]
 
@@ -261,8 +277,10 @@ def main(year: int = 2023):
         # (offset vertical + flecha para evitar solape entre regiones contiguas)
         top3 = np.argsort(-reg_p)[:3]
         shown, k_off = [], 0
+        ref_sorted = np.sort(p_ref) if s2_mem is not None else np.array([reg_ref_thr[-1]])
+        q90 = np.quantile(ref_sorted, 0.9)
         for t in top3:
-            if iso_reg is not None and reg_p[t] < np.quantile(p_reg_ref, 0.9):
+            if reg_p[t] < q90:
                 continue
             lat_c, lng_c = h3.cell_to_latlng(unique_r7[t])
             if any(abs(lat_c - s[0]) < 0.09 and abs(lng_c - s[1]) < 0.09 for s in shown):

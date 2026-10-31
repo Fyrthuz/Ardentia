@@ -144,6 +144,13 @@ def main():
 
     te[["fecha", "r7", "p_alguno", "p_iso", "mu_stage2", "p_stage2", "n_fuegos_obs"]] \
         .to_parquet("reports/stage2_predictions_2024.parquet", index=False)
+
+    # persistir el modelo para el vídeo y uso operativo
+    np.savez_compressed(
+        "reports/stage2_model.npz",
+        regions=np.array(regions), mem=mem.astype(np.float32),
+        coef=glm.coef_.astype(np.float64), intercept=float(glm.intercept_))
+    print("-> reports/stage2_model.npz")
     OUT.write_text(json.dumps({
         "beta_stage1": round(float(beta), 4),
         "mem_k": int(mem.shape[1]),

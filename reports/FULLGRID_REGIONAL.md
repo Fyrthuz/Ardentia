@@ -181,3 +181,39 @@ recalibración isotónica de producción queda sustituida por el GLM+MEM.
 
 Artefactos: `src/ardintra/models/stage2_lgcp.py`, `reports/stage2_lgcp.json`,
 `reports/stage2_reliability.csv`, `reports/stage2_predictions_2024.parquet`.
+
+## 9. Stage 2 integrado al vídeo
+
+`reports/simulacion_2023_2panel.mp4` regenerado: el panel derecho usa μ del
+GLM+MEM (`reports/stage2_model.npz`) — P(≥1) regional honesta, etiquetas ×N
+(riesgo vs base rate 0.028%) y λ diario = Σμ (Nº esperado de fuegos). Ejemplo
+2023-10-12: ×6-×7 en las top-3 (antes ×38 con el modelo sobreenconfiado).
+
+## 10. Fase 3 — Secuencias temporales (14 días) — SIN GANANCIA
+
+Contexto temporal explícito (ventana 14 días de meteo/FWI por celda, IDW 3
+estaciones; `data/processed/features/v1/sequences.npz`, 267k × 14×8):
+
+| Modelo | AUC (test) | AP |
+|---|---|---|
+| LGBM tabular día-D (48 feats, obs) | **0.897** | **0.036** |
+| LGBM tabular día-D (48 feats, forecast test) | 0.867 | 0.019 |
+| LGBM + sumarios 14d | 0.864 | 0.030 |
+| LGBM + secuencia aplanada (112) | 0.811 | 0.012 |
+| LSTM 2×64 (solo met-secuencia) | 0.870 | 0.017 |
+
+- **Las secuencias de meteo no añaden valor**: los índices FWI (DC/DMC son
+  acumulados con memoria de meses) ya codifican la historia temporal relevante
+- Consistente con Di Giuseppe 2025 (ECMWF): calidad de datos > arquitectura
+- Nota: comparación LSTM vs tabular no es apples-to-apples (LSTM sin features
+  estáticas/espaciales); el test justo (tabular+sumarios) confirma: −0.3pp AUC
+- Hallazgo adicional: el forecast D-1 cuesta ~3pp de AUC agregado en muestra
+  (0.897→0.867) aunque el recall operativo @K queda dentro del ruido — el coste
+  real de operar con forecast se concentra en la discriminación de la muestra,
+  no en la detección operativa top-K
+
+## Estado final del sistema
+
+Pipeline operativo completo y validado:
+1. Forecast D-1 (GFS) → 2. LGBM 245k celdas → 3. Calibración isotónica celda →
+4. Stage 2 GLM+MEM regional (AUC 0.755, rec@10% 39.4%) → 5. Vídeo/niveles ×N+λ

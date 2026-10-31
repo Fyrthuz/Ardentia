@@ -1,0 +1,18 @@
+{
+  "lgbm_sumarios": {
+    "auc": 0.81,
+    "ap": 0.0135
+  },
+  "lgbm_flat14": {
+    "auc": 0.8111,
+    "ap": 0.0117
+  },
+  "lstm_14d": {
+    "auc": 0.8698,
+    "ap": 0.0165
+  },
+  "ref_lgbm_tabular_diaD": {
+    "auc": 0.897,
+    "ap": 0.0364
+  }
+}
