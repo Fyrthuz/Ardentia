@@ -1,0 +1,11 @@
+{
+  "beta_stage1": 0.6056,
+  "mem_k": 80,
+  "norm_gamma_mem": 6.1988,
+  "auc_2024": {
+    "raw": 0.7189,
+    "iso": 0.6929,
+    "stage2": 0.755
+  },
+  "nota": "Poisson GLM + MEM res7, ajuste 2023, validaci\u00f3n 2024"
+}

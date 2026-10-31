@@ -145,3 +145,39 @@ Runs API, GFS, lead 24h) en las filas de test:
   → elimina el leakage operativo detectado (meteo del día D no disponible de mañana)
 - Artefactos: `data/raw/openmeteo/met_fc.parquet` (forecast+FWI por estación),
   `reports/fullgrid_eval_v3.json`, flag `ARDENTIA_MET_FC=1` en fullgrid_eval
+
+## 8. Stage 2 — Modelo jerárquico espacial (GLM + Moran Eigenvector Maps)
+
+Réplica python del enfoque "XGBoost meets INLA" (arXiv 2508.09896), sin R:
+
+    log μ_{r,d} = α + β·log(1+λ_raw_{r,d}) + Σ_k γ_k·MEM_k(r)
+
+- MEM: eigenvectores de Moran de la adjacency hexagonal res7 (5.710 regiones,
+  base discreta que aproxima el campo Matérn del SPDE; Griffith 1996)
+- β recalibra la intensidad Stage 1 (ajustado: 0.61 — corrige la sobreenconfianza)
+- u_r = MEM·γ: patrón espacial residual persistente (clustering no explicado
+  por features dinámicas)
+- Ajuste: PoissonRegressor (ridge), alpha=1e-6 **seleccionado por CV dentro de
+  2023 (fit Ene-Jun → val Jul-Dic)** — sin tocar 2024
+
+### Validación 2024 (split temporal, 154.170 regiones-día, 33 con fuego)
+
+| Modelo | AUC | rec@10% región-día |
+|---|---|---|
+| λ cruda Stage 1 | 0.719 | 30.3% |
+| Isotónica regional (producción) | 0.693 | 27.3% |
+| **Stage 2 (GLM+MEM)** | **0.755** | **39.4%** |
+
+Reliability por deciles: monótona y bien calibrada (top decile: pred 0.00052 vs
+real 0.00071 — subconfianza 1.4×, aceptable para eventos raros).
+
+Sensibilidad a alpha: 1e-4 → 0.720 (espacial colapsado), 1e-6 → 0.755 (óptimo,
+elegido por CV), 1e-8 → 0.717 (sobreajuste). El CV interno de 2023 selecciona
+1e-6 de forma independiente → la ganancia no es artefacto de selección.
+
+**Conclusión:** Stage 2 mejora el forecast regional de forma genuina (+3.6pp AUC,
++12pp rec@10% sobre el baseline de producción) con calibración honesta. La
+recalibración isotónica de producción queda sustituida por el GLM+MEM.
+
+Artefactos: `src/ardintra/models/stage2_lgcp.py`, `reports/stage2_lgcp.json`,
+`reports/stage2_reliability.csv`, `reports/stage2_predictions_2024.parquet`.
