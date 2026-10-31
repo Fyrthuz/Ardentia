@@ -262,3 +262,42 @@ Gelabert 2025: distancia a WUI = driver humano principal. Proxy sin población:
 - AUC: 0.8874 (sin) vs 0.8857 (con) — sin ganancia
 - Importancia mínima: ya tenemos dist_to_road, road_density, road_class y
   road_fuel_interface — la huella humana está cubierta; el proxy es colineal
+
+## 12. TabPFN v2 y destilación — ganancia en muestra, no transfiere al grid
+
+### 12.1 TabPFN v2 (transformer preentrenado, Nature 2025) — mejor modelo en muestra
+
+Ensembling por subsampling (10×10k, todos los positivos), eval con 137
+positivos test + 20k negativos (AUC insesgado):
+
+| Modelo | AUC | AP |
+|---|---|---|
+| **TabPFN v2 (teacher)** | **0.9387** | **0.165** |
+| Blend student+labels | 0.9320 | 0.138 |
+| Student destilado (LGBM) | 0.9303 | 0.144 |
+| LGBM labels (referencia) | 0.8878 | 0.092 |
+
++5.1pp AUC y AP ×1.8 sobre LGBM en la distribución muestreada.
+
+### 12.2 Destilación a full-grid — NO TRANSFIERE ❌
+
+La inferencia directa de TabPFN en full-grid es inviable (~30+ min/día).
+Destilación: 420k filas full-grid de train puntuadas por el teacher
+(`distill_set.parquet`) → student LGBM (retiene 0.9303 en muestra).
+
+Pero la evaluación operativa full-grid (82 días) del blend degrada:
+top10 18.0% vs 29.5% (LGBM forecast) · AUC regional 0.593 · rec@10% región 13.1%.
+
+**Causa raíz:** el teacher solo fue calibrado/evaluado en la distribución
+MUESTREADA (15 celdas/día); su ranking no transfiere al espacio full-grid —
+el mismo fallo de dominio que la sobreenconfianza de la isotónica. La
+destilación copió fielmente al teacher, incluida su debilidad OOD.
+
+**Lección del proyecto (3 evidencias): la brecha muestra→full-grid es EL
+problema central del sistema.** Cualquier mejora debe validarse directamente
+en full-grid, no en la muestra.
+
+### 12.3 Decisión
+
+Pipeline de producción = el mejor validado operativamente:
+forecast D-1 corregido NGR → LGBM 48 feats → isotónica → Stage 2 GLM+MEM.

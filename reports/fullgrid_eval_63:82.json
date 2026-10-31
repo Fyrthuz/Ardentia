@@ -2,12 +2,12 @@
   "summary": {
     "n_dias_evaluados": 19,
     "n_fires_big10_total": 24,
-    "recall_top1_mean": 0.053,
-    "recall_top5_mean": 0.298,
-    "recall_top10_mean": 0.456,
+    "recall_top1_mean": 0.0,
+    "recall_top5_mean": 0.053,
+    "recall_top10_mean": 0.316,
     "recall_top1_median": 0.0,
     "recall_top5_median": 0.0,
-    "recall_top10_median": 0.333
+    "recall_top10_median": 0.0
   },
   "daily": [
     {
@@ -19,8 +19,8 @@
       "precision@5%": 0.0,
       "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9967,
-      "p_mean": 0.15454
+      "p_max": 0.9905,
+      "p_mean": 0.6205
     },
     {
       "fecha": "2024-04-18 00:00:00",
@@ -29,34 +29,34 @@
       "precision@1%": 0.0,
       "recall@5%": 0,
       "precision@5%": 0.0,
-      "recall@10%": 0,
+      "recall@10%": 1,
       "precision@10%": 0.0,
-      "p_max": 0.9972,
-      "p_mean": 0.18556
+      "p_max": 0.9935,
+      "p_mean": 0.6635
     },
     {
       "fecha": "2024-04-23 00:00:00",
       "n_fires": 3,
       "recall@1%": 0,
       "precision@1%": 0.0,
-      "recall@5%": 1,
-      "precision@5%": 0.0001,
-      "recall@10%": 1,
+      "recall@5%": 0,
+      "precision@5%": 0.0,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9995,
-      "p_mean": 0.26822
+      "p_max": 0.9899,
+      "p_mean": 0.66757
     },
     {
       "fecha": "2024-04-24 00:00:00",
       "n_fires": 1,
       "recall@1%": 0,
       "precision@1%": 0.0,
-      "recall@5%": 1,
-      "precision@5%": 0.0001,
-      "recall@10%": 1,
+      "recall@5%": 0,
+      "precision@5%": 0.0,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9965,
-      "p_mean": 0.18716
+      "p_max": 0.9936,
+      "p_mean": 0.66569
     },
     {
       "fecha": "2024-05-11 00:00:00",
@@ -65,22 +65,22 @@
       "precision@1%": 0.0,
       "recall@5%": 0,
       "precision@5%": 0.0,
-      "recall@10%": 0,
+      "recall@10%": 1,
       "precision@10%": 0.0,
-      "p_max": 0.7473,
-      "p_mean": 0.00283
+      "p_max": 0.9905,
+      "p_mean": 0.59964
     },
     {
       "fecha": "2024-05-13 00:00:00",
       "n_fires": 1,
       "recall@1%": 0,
       "precision@1%": 0.0,
-      "recall@5%": 1,
-      "precision@5%": 0.0001,
-      "recall@10%": 1,
+      "recall@5%": 0,
+      "precision@5%": 0.0,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.4474,
-      "p_mean": 0.00045
+      "p_max": 0.985,
+      "p_mean": 0.56681
     },
     {
       "fecha": "2024-08-17 00:00:00",
@@ -91,8 +91,8 @@
       "precision@5%": 0.0,
       "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9843,
-      "p_mean": 0.01063
+      "p_max": 0.99,
+      "p_mean": 0.63023
     },
     {
       "fecha": "2024-08-20 00:00:00",
@@ -101,10 +101,10 @@
       "precision@1%": 0.0,
       "recall@5%": 0,
       "precision@5%": 0.0,
-      "recall@10%": 0,
+      "recall@10%": 1,
       "precision@10%": 0.0,
-      "p_max": 0.9439,
-      "p_mean": 0.01069
+      "p_max": 0.9917,
+      "p_mean": 0.64537
     },
     {
       "fecha": "2024-08-24 00:00:00",
@@ -115,8 +115,8 @@
       "precision@5%": 0.0,
       "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.7826,
-      "p_mean": 0.00204
+      "p_max": 0.9933,
+      "p_mean": 0.63522
     },
     {
       "fecha": "2024-08-29 00:00:00",
@@ -127,8 +127,8 @@
       "precision@5%": 0.0,
       "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9917,
-      "p_mean": 0.01704
+      "p_max": 0.9933,
+      "p_mean": 0.65356
     },
     {
       "fecha": "2024-08-30 00:00:00",
@@ -139,8 +139,8 @@
       "precision@5%": 0.0,
       "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.99,
-      "p_mean": 0.01303
+      "p_max": 0.9927,
+      "p_mean": 0.65735
     },
     {
       "fecha": "2024-09-04 00:00:00",
@@ -151,20 +151,20 @@
       "precision@5%": 0.0001,
       "recall@10%": 1,
       "precision@10%": 0.0,
-      "p_max": 0.9953,
-      "p_mean": 0.0186
+      "p_max": 0.9924,
+      "p_mean": 0.67649
     },
     {
       "fecha": "2024-09-05 00:00:00",
       "n_fires": 1,
-      "recall@1%": 1,
-      "precision@1%": 0.0004,
-      "recall@5%": 1,
-      "precision@5%": 0.0001,
-      "recall@10%": 1,
+      "recall@1%": 0,
+      "precision@1%": 0.0,
+      "recall@5%": 0,
+      "precision@5%": 0.0,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.965,
-      "p_mean": 0.01071
+      "p_max": 0.9935,
+      "p_mean": 0.68223
     },
     {
       "fecha": "2024-09-06 00:00:00",
@@ -173,34 +173,34 @@
       "precision@1%": 0.0,
       "recall@5%": 0,
       "precision@5%": 0.0,
-      "recall@10%": 1,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9375,
-      "p_mean": 0.00445
+      "p_max": 0.9853,
+      "p_mean": 0.59092
     },
     {
       "fecha": "2024-09-14 00:00:00",
       "n_fires": 1,
       "recall@1%": 0,
       "precision@1%": 0.0,
-      "recall@5%": 1,
-      "precision@5%": 0.0001,
-      "recall@10%": 1,
+      "recall@5%": 0,
+      "precision@5%": 0.0,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9726,
-      "p_mean": 0.0327
+      "p_max": 0.9877,
+      "p_mean": 0.62368
     },
     {
       "fecha": "2024-09-16 00:00:00",
       "n_fires": 3,
       "recall@1%": 0,
       "precision@1%": 0.0,
-      "recall@5%": 1,
-      "precision@5%": 0.0001,
-      "recall@10%": 1,
+      "recall@5%": 0,
+      "precision@5%": 0.0,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9911,
-      "p_mean": 0.06299
+      "p_max": 0.9893,
+      "p_mean": 0.63641
     },
     {
       "fecha": "2024-09-18 00:00:00",
@@ -211,8 +211,8 @@
       "precision@5%": 0.0,
       "recall@10%": 1,
       "precision@10%": 0.0,
-      "p_max": 0.9478,
-      "p_mean": 0.03178
+      "p_max": 0.9916,
+      "p_mean": 0.65998
     },
     {
       "fecha": "2024-09-19 00:00:00",
@@ -221,10 +221,10 @@
       "precision@1%": 0.0,
       "recall@5%": 0,
       "precision@5%": 0.0,
-      "recall@10%": 0,
+      "recall@10%": 1,
       "precision@10%": 0.0,
-      "p_max": 0.9203,
-      "p_mean": 0.00772
+      "p_max": 0.9927,
+      "p_mean": 0.67596
     },
     {
       "fecha": "2024-12-08 00:00:00",
@@ -233,10 +233,10 @@
       "precision@1%": 0.0,
       "recall@5%": 0,
       "precision@5%": 0.0,
-      "recall@10%": 1,
+      "recall@10%": 0,
       "precision@10%": 0.0,
-      "p_max": 0.9718,
-      "p_mean": 0.01916
+      "p_max": 0.9965,
+      "p_mean": 0.64805
     }
   ]
 }

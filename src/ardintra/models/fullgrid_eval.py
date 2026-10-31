@@ -68,11 +68,71 @@ def main(target_thresh_ha: float = 10.0, shard: str = ""):
     y_tr = df["big10"].to_numpy()
     tr = df["fecha"].dt.year.to_numpy() <= 2022
     spw = max((y_tr[tr] == 0).sum() / max((y_tr[tr] == 1).sum(), 1), 0.1)
-    model = lgb.LGBMClassifier(n_estimators=600, learning_rate=0.05, num_leaves=31,
-                               min_child_samples=100, scale_pos_weight=spw,
-                               random_state=42, verbosity=-1)
-    model.fit(X_tr[tr], y_tr[tr])
-    print(f"modelo entrenado · features {len(FEATS)}", flush=True)
+    USE_TABPFN = os.environ.get("ARDENTIA_MODEL") == "tabpfn"
+    USE_DISTILLED = os.environ.get("ARDENTIA_MODEL") == "distilled"
+    if USE_DISTILLED:
+        # blend 50/50: student destilado del teacher TabPFN + LGBM de labels
+        import joblib
+        s_pack = joblib.load("models/student_lgbm.joblib")
+        l_pack = joblib.load("models/lgbm_labels.joblib")
+        stud, lmod = s_pack["model"], l_pack["model"]
+        cat_maps_d = s_pack["cat_maps"]
+
+        def dist_predict(day_feats: pd.DataFrame) -> np.ndarray:
+            Z = day_feats[FEATS].copy()
+            for c, mapping in cat_maps_d.items():
+                Z[c] = Z[c].map(mapping).fillna(-1)
+            Z = Z.astype("float64")
+            p_s = np.clip(stud.predict(Z), 0, 1)
+            p_l = lmod.predict_proba(Z)[:, 1]
+            return 0.5 * (p_s + p_l)
+        print("modelo DISTILLED (blend student+labels) cargado", flush=True)
+    elif USE_TABPFN:
+        # TabPFN v2: ensembling por subsampling (todos los positivos + negativos aleatorios)
+        from tabpfn import TabPFNClassifier
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        N_ENS = int(os.environ.get("TABPFN_ENSEMBLE", "10"))
+        rng_pf = np.random.default_rng(42)
+        pos_all = np.where(y_tr[tr] == 1)[0]
+        neg_all = np.where(y_tr[tr] == 0)[0]
+        Xtr_num = X_tr[tr].reset_index(drop=True).copy()
+        cat_maps = {}
+        for c in Xtr_num.columns:
+            if pd.api.types.is_categorical_dtype(Xtr_num[c]):
+                cat_maps[c] = {v: i for i, v in enumerate(Xtr_num[c].cat.categories)}
+                Xtr_num[c] = Xtr_num[c].cat.codes.astype("float64")
+        Xtr_num = Xtr_num.astype("float64")
+        tab_models = []
+        for k in range(N_ENS):
+            neg_k = rng_pf.choice(neg_all, size=10_000 - len(pos_all), replace=False)
+            idx_k = np.sort(np.concatenate([pos_all, neg_k]))
+            clf = TabPFNClassifier(device=device, random_state=42)
+            clf.fit(Xtr_num.iloc[idx_k], y_tr[tr][idx_k])
+            tab_models.append(clf)
+        print(f"TabPFN ensemble ×{N_ENS} listo (device={device})", flush=True)
+
+        def tab_predict(day_feats: pd.DataFrame) -> np.ndarray:
+            Z = day_feats[FEATS].copy()
+            for c, mapping in cat_maps.items():
+                Z[c] = Z[c].map(mapping).fillna(-1)
+            Z = Z.astype("float64")
+            n = len(Z)
+            out = np.zeros(n)
+            B = 20_000
+            for s in range(0, n, B):
+                chunk = Z.iloc[s:s + B]
+                ps = [clf.predict_proba(chunk)[:, 1] for clf in tab_models]
+                out[s:s + B] = np.mean(ps, axis=0)
+            import torch
+            torch.cuda.empty_cache()
+            return out
+    else:
+        model = lgb.LGBMClassifier(n_estimators=600, learning_rate=0.05, num_leaves=31,
+                                   min_child_samples=100, scale_pos_weight=spw,
+                                   random_state=42, verbosity=-1)
+        model.fit(X_tr[tr], y_tr[tr])
+    print(f"modelo entrenado · features {len(FEATS)} · tabpfn={USE_TABPFN}", flush=True)
 
     # --- calibración isotónica (aux <=2021, ajuste en 2022)
     from sklearn.isotonic import IsotonicRegression
@@ -265,7 +325,12 @@ def main(target_thresh_ha: float = 10.0, shard: str = ""):
         for c in Xd.columns:
             if not (pd.api.types.is_numeric_dtype(Xd[c]) or pd.api.types.is_bool_dtype(Xd[c])):
                 Xd[c] = Xd[c].astype("category")
-        p_day = model.predict_proba(Xd)[:, 1]
+        if USE_DISTILLED:
+            p_day = dist_predict(day_feats)
+        elif USE_TABPFN:
+            p_day = tab_predict(day_feats)
+        else:
+            p_day = model.predict_proba(Xd)[:, 1]
         p_cal_day = iso.predict(p_day) if iso is not None else p_day
 
         # 6) ¿los fuegos reales de ese día cayeron en el top-K%?

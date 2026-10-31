@@ -1,0 +1,17 @@
+{
+  "tabpfn_v2_ensemble": {
+    "auc": 0.9389,
+    "ap": 0.1676,
+    "n_ensemble": 30,
+    "subsize": 10000
+  },
+  "nota": "AUC sobre todos los positivos test + 20k negativos (insesgado)",
+  "ref_lgbm_v3b_full_test": {
+    "auc": 0.8874,
+    "ap": 0.0339
+  },
+  "lgbm_mismo_eval": {
+    "auc": 0.8878,
+    "ap": 0.0922
+  }
+}

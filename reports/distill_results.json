@@ -1,0 +1,19 @@
+{
+  "teacher_tabpfn": {
+    "auc": 0.9387,
+    "ap": 0.1653
+  },
+  "student_distilled": {
+    "auc": 0.9303,
+    "ap": 0.1427
+  },
+  "lgbm_labels": {
+    "auc": 0.8887,
+    "ap": 0.0892
+  },
+  "blend_50_50": {
+    "auc": 0.932,
+    "ap": 0.1329
+  },
+  "nota": "eval: 137 positivos test + 20k negativos (AUC insesgado)"
+}
