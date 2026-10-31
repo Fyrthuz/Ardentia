@@ -18,7 +18,7 @@ import pandas as pd
 from scipy.spatial import cKDTree
 
 V1 = Path("/tmp/opencode/dataset_v1_backup.parquet")
-V2 = Path("data/processed/features/v1/dataset.parquet")
+V2 = Path("/tmp/opencode/dataset_v2_backup.parquet")  # fuente de cause/es_humana (build v2)
 MET_FC = Path("data/raw/openmeteo/met_fc.parquet")
 OUT = Path("data/processed/features/v1/dataset.parquet")
 
@@ -74,8 +74,10 @@ def main():
         vv3 = np.take_along_axis(vv, ii[row_cell], axis=1)   # 3 estaciones más cercanas
         wv = w[row_cell]
         valid = ~np.isnan(vv3)
+        has_fc = valid.any(axis=1)                       # solo filas con cobertura real
         interp = np.nansum(np.where(valid, vv3, 0) * np.where(valid, wv, 0), axis=1) / \
                  np.maximum(np.where(valid, wv, 0).sum(axis=1), 1e-9)
+        interp = np.where(has_fc, interp, np.nan)        # sin cobertura → mantener obs
         old = df[var].to_numpy(dtype=float)
         full = np.full(len(df), np.nan)
         full[m_test] = interp

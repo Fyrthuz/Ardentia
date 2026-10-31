@@ -129,22 +129,27 @@ de ignición en días FWI≥p90) corregirían la sobreenconfianza full-grid.
 - Columnas `cause`, `es_humana`, `es_rayo` disponibles para análisis y modelos por causa
 - Pendiente (Fase 2): modelo separado humano/natural (Gelabert 2025, Gómez-Pazo 2025)
 
-### 7.3 Forecast D-1 — VIABLE (sin degradación significativa)
+### 7.3 Forecast D-1 — VIABLE con coste pequeño y cuantificado
 
-Sustitución de la meteo observada del día D por forecast D-1 (Open-Meteo Previous
-Runs API, GFS, lead 24h) en las filas de test:
+**NOTA DE CORRECCIÓN:** la primera versión de este experimento usó datos de
+GFS Previous Runs (cobertura solo desde 2024-01) que dejó las features met de
+2023 a cero → resultados inválidos, retractados. La versión definitiva usa la
+Historical Forecast API (HRES seamless, cobertura 2023 completa, lead ~24h)
+con corrección de sesgo NGR-lite por estación (fit 2023, verificado en 2024:
+RMSE del FWI forecast 3.03→2.37, −22%).
 
-| Métrica | obs (V1) | forecast D-1 (V3) | dif |
+| Métrica | obs (V1) | forecast D-1 corregido (V3b) | dif |
 |---|---|---|---|
-| recall top1 | 3.0% | 7.5% | +1.1 SE |
-| recall top5 | 14.2% | 18.9% | +1.1 SE |
-| recall top10 | 31.2% | 27.5% | −0.8 SE |
+| AUC agregado (muestra) | 0.897 | 0.887 | −1.0pp |
+| recall top5 operativo | 14.2% | 13.2% | −0.3 SE (ruido) |
+| recall top10 operativo | 31.2% | 29.5% | −0.4 SE (ruido) |
 
-- Todas las diferencias dentro de ~1 SE → **ruido estadístico, no señal**
-- **Conclusión:** el sistema puede operar con forecast D-1 sin pérdida medible
-  → elimina el leakage operativo detectado (meteo del día D no disponible de mañana)
-- Artefactos: `data/raw/openmeteo/met_fc.parquet` (forecast+FWI por estación),
-  `reports/fullgrid_eval_v3.json`, flag `ARDENTIA_MET_FC=1` en fullgrid_eval
+- **Conclusión:** el sistema puede operar con forecast D-1: el coste es −1pp
+  de AUC agregado en muestra y no detectable en el recall operativo @K
+  → elimina el leakage operativo (la meteo del día D no está disponible de mañana)
+- Artefactos: `src/ardintra/features/build_met_fc.py` (NGR-lite),
+  `data/raw/openmeteo/met_fc.parquet`, `reports/fullgrid_eval_v3.json`,
+  flag `ARDENTIA_MET_FC=1` en fullgrid_eval
 
 ## 8. Stage 2 — Modelo jerárquico espacial (GLM + Moran Eigenvector Maps)
 
@@ -207,10 +212,9 @@ estaciones; `data/processed/features/v1/sequences.npz`, 267k × 14×8):
 - Consistente con Di Giuseppe 2025 (ECMWF): calidad de datos > arquitectura
 - Nota: comparación LSTM vs tabular no es apples-to-apples (LSTM sin features
   estáticas/espaciales); el test justo (tabular+sumarios) confirma: −0.3pp AUC
-- Hallazgo adicional: el forecast D-1 cuesta ~3pp de AUC agregado en muestra
-  (0.897→0.867) aunque el recall operativo @K queda dentro del ruido — el coste
-  real de operar con forecast se concentra en la discriminación de la muestra,
-  no en la detección operativa top-K
+- Hallazgo adicional (corregido tras detectar datos inválidos): el forecast
+  D-1 con corrección NGR cuesta −1pp de AUC agregado (0.897→0.887); el recall
+  operativo @K queda dentro del ruido (−0.3/−0.4 SE)
 
 ## Estado final del sistema
 
