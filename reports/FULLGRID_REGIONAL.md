@@ -221,3 +221,44 @@ estaciones; `data/processed/features/v1/sequences.npz`, 267k × 14×8):
 Pipeline operativo completo y validado:
 1. Forecast D-1 (GFS) → 2. LGBM 245k celdas → 3. Calibración isotónica celda →
 4. Stage 2 GLM+MEM regional (AUC 0.755, rec@10% 39.4%) → 5. Vídeo/niveles ×N+λ
+
+## 11. Ronda literatura 2 (NGR, causa, WUI)
+
+### 11.1 Corrección de sesgo del forecast (NGR-lite) — ADOPTADA ✅
+
+Bohlmann & Laine 2024 (NHESS): calibración estadística de forecasts de FWI.
+Implementación: corrección lineal por estación (tmax/rh/viento) + factor
+multiplicativo de precipitación, ajustada con pares obs-forecast 2023,
+aplicada a todo el forecast; cadena FWI recalculada sobre el tiempo corregido.
+
+- RMSE del FWI forecast 2024 (holdout): 3.03 → **2.37 (−22%)** · bias +1.27 → +0.91
+- Coste del forecast en AUC agregado: −3pp (sin corregir, medida inválida
+  inicial) → **−1pp corregido** (0.897 → 0.887)
+- Recall operativo @K: dentro del ruido (−0.3/−0.4 SE)
+- `src/ardintra/features/build_met_fc.py`
+
+### 11.2 Modelos separados por causa — REFUTADO ❌
+
+Gelabert 2025 / Shmuel 2025 sugieren modelos por causa. Con nuestros datos
+(862 humanas ≥10ha en train, 39 rayo, 458 otra):
+
+| Modelo | AUC |
+|---|---|
+| Único (referencia) | **0.897** |
+| Solo humanas | 0.867 |
+| Solo naturales+otras | 0.704 |
+| Combinado 1−(1−p_h)(1−p_n) | 0.861 |
+
+Dividir debilita la señal (menos positivos por modelo) y el combinado pierde
+3.6pp. Con 76% de igniciones humanas, el modelo único ya captura el patrón
+dominante. La causa queda como columna analítica, no como separación de modelos.
+
+### 11.3 WUI / densidad de edificios (OSM) — REFUTADO ❌
+
+Gelabert 2025: distancia a WUI = driver humano principal. Proxy sin población:
+446.494 edificios OSM → densidad 1 km + distancia al edificio más cercano
+(`data/processed/h3_cells/res9_wui.parquet`).
+
+- AUC: 0.8874 (sin) vs 0.8857 (con) — sin ganancia
+- Importancia mínima: ya tenemos dist_to_road, road_density, road_class y
+  road_fuel_interface — la huella humana está cubierta; el proxy es colineal
