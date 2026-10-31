@@ -52,36 +52,64 @@ Pipelines independientes (`uv run python -m <módulo>`):
 | `ardintra.ingest.s2_stac` | Composites S2 LOCALES (NDMI/NDVI/NBR verano 2017–2024 @100 m, sin auth) |
 | `ardintra.features.build_static` | Tabla maestra H3 res9 con todas las estáticas |
 
-## Resultados finales del ciclo de experimentación (2026-10-29)
+## Pipeline final validado (2026-10-31)
 
-**Métricas defendibles** (test 2023–24 jamás tocado · ROC-AUC como métrica comparable con literatura):
+```
+Forecast D-1 (HRES vía Open-Meteo, corrección NGR-lite por estación)
+  → LGBM 48 features (245k celdas H3 res9)
+  → calibración isotónica (Brier 0.0118→0.0065, reliability casi perfecta)
+  → Stage 2 regional: GLM + Moran Eigenvector Maps res7 (Poisson jerárquico)
+  → niveles de riesgo ×N + λ diario (Nº esperado de fuegos)
+```
 
-| Configuración | ROC-AUC | Lift | recall@5% |
-|---|---|---|---|
-| FWI solo (estado del arte) | 0.67 | 0.6× — peor que azar | 9% |
-| LGBM balanced-ensemble ×25 (met+sequía+recencia+satélite+viaria) | **0.9098** | **21-24× azar** | **56%** |
-| Jerárquico fusión (fino+regional) | 0.8809 | 12-18× | 50% |
-| Comparativa literatura: RF-Kondylatos 0.898 · ConvLSTM 0.926 · NHESS-Europa 0.81 | | | |
+**Métricas clave** (splits temporales honestos, test 2023-24 jamás tocado):
 
-Detalles por resolución y experimento en `reports/` (ver docs/ROADMAP.md).
+| Métrica | Valor | Referencia |
+|---|---|---|
+| ROC-AUC agregado (muestra, obs) | 0.897 | LGBM 48 feats |
+| ROC-AUC agregado (forecast D-1 corregido) | 0.887 | coste −1pp por operar con forecast |
+| Recall operativo top-10% territorio | 29.5-31.2% | 82 días, 137 fuegos ≥10 ha |
+| Recall operativo top-5% | 13-14% | idem |
+| AUC regional (Stage 2 GLM+MEM, 2024) | **0.755** | vs 0.693 isotónica / 0.719 cruda |
+| Recall@10% regiones-día (Stage 2) | **39.4%** | vs 27.3% baseline |
+| Calibración celda (Brier) | 0.0065 | −45% vs crudo |
+| Corrección NGR del forecast | RMSE FWI −22% | 3.03→2.37 |
+
+**Vídeo de ejemplo** (`reports/simulacion_2023_2panel.mp4`, temporada 2023):
+panel izquierdo = celdas res9 por percentil de riesgo calibrado; panel derecho =
+P(≥1 fuego ≥10 ha) por región res7 con el modelo Stage 2, etiquetas ×N (riesgo
+vs base rate) en las top-3 del día; pie con λ diario y fuegos reales (⭐ ≥10 ha).
+
+## Lecciones del ciclo de experimentación (2026-10-30/31)
+
+Refutaciones documentadas (todas con números en `reports/FULLGRID_REGIONAL.md`):
+
+- **La brecha muestra→full-grid es EL problema central**: la calibración ajustada
+  en la muestra no transfiere al grid completo (sobreenconfianza estructural).
+  TabPFN v2 (AUC 0.9387 en muestra, +5.1pp sobre LGBM) tampoco transfiere vía
+  destilación (top10 18% vs 29.5%) — fallo OOD del teacher.
+- Muestreo estratificado de negativos (Pourmohamad 2025): empeora aquí (−1.9pp).
+- Secuencias temporales 14d (LSTM/flat/sumarios): sin ganancia — los índices FWI
+  ya son integradores temporales (DC/DMC acumulan meses).
+- Modelos separados por causa: −3.6pp (76% humanas domina el patrón).
+- WUI por edificios OSM: colineal con las features viarias existentes.
+- Frailty NB: no transfiere out-of-sample (55 días de train).
+
+Adopciones: isotónica (Brier −45%), Stage 2 GLM+MEM (+12pp rec@10% regional),
+corrección NGR del forecast (RMSE −22%, leakage operativo eliminado).
 
 ## Simulación visual
 
-`reports/simulacion_2023_res9.mp4` — temporada 2023 día a día: celdas coloreadas
-por score (baremo fijo: P75/92/98/99.7 de la temporada), fuegos reales apareciendo
-(⭐ ≥10 ha), zoom-inset sobre el mayor fuego del día, 3 s/frame.
+- `reports/simulacion_2023_2panel.mp4` — **vídeo principal** (2 paneles, Stage 2)
+- `reports/simulacion_2023_res*.mp4` — versiones por resolución
 
-## Estado resumido (2026-10-29)
+## Estado (2026-10-31)
 
-- Fase 0 completa (ingesta y validación de fuentes) ✔
-- Fase 1: estáticas construidas ✔ (245.172 celdas H3 res9 forestales);
-  meteorología oficial en curso (AEMET paced 18 estaciones restantes; ERA5-Land ~20/32);
-  satélite via STAC local (s2_stac) en marcha. **Embeddings cancelados para MVP** (decisión
-  2026-10-29); módulo GEE quedará como alternativa a future (parked).
-- Fase 2 (modelo vs FWI): pendiente; ya hay etiquetas disponibles
-  (23.350 igniciones localizadas de EGIF 2017–2023 + perímetros EFFIS).
-- Fase 3 (serving/postgis/martin/visor — prototipo mini-API ya operativo en :8001),
-  Fase 4 (XAI+LLM) y Fase 5 (Cloudflare): pendientes.
+- Pipeline completo operativo: forecast D-1 → LGBM → isotónica → Stage 2 → vídeo ✔
+- Datos: EGIF+EFFIS (causa propagada), AEMET+openmeteo (obs y forecast D-1),
+  ERA5-Land, S2 8/8 veranos, OSM (carreteras + edificios), DEM/MFE25 ✔
+- Pendiente: modelos por causa con más datos, ensembles ECMWF (51 miembros),
+  más años de histórico (el límite real es la señal, no el modelo)
 
 ## Comparativa por resolución de hexágono (balanced-ensemble 25×, target ≥10 ha, test 2023-24)
 
@@ -95,14 +123,4 @@ por score (baremo fijo: P75/92/98/99.7 de la temporada), fuegos reales aparecien
 | res4 | 1.770 km² | 11k | 5.11% | 0.2656 | 5× | 0.8757 | 30% |
 
 ⚠️ El AP absoluto sube con celdas grandes SOLO porque sube la prevalencia; el **lift honesto**
-muestra que res9/res8 son muy superiores (5-21× vs 4-7×). Los vídeos de simulación existen
-para las 6 resoluciones (`reports/simulacion_2023_res*.mp4`).
-
-## Próximos pasos (retomar mañana)
-
-1. **Granularidad**: res9 (245k celdas) tiene demasiada densidad visual para el mapa;
-   decidir entre res8 como producción o res9 con renderizado optimizado (tiles/vector).
-2. **S2**: los 8 TIFFs están listos; el dataset v4 ya los integra (ndmi/ndvi/nbr prev-summer
-   al 37.8% y subiendo). Re-evaluar ablación completa.
-3. **Ensemble final**: re-run de `ensemble_gate.py` con el dataset v4 limpio.
-4. **Push periódico**: mantener el repo sincronizado con los reports.
+muestra que res9/res8 son muy superiores (5-21× vs 4-7×).
