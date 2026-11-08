@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 import joblib
+import os
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
@@ -20,7 +21,7 @@ from sklearn.metrics import roc_auc_score, average_precision_score
 
 DATASET = Path("data/processed/features/v1/dataset.parquet")
 DISTILL = Path("data/processed/features/v1/distill_set.parquet")
-STUDENT = Path("models/student_lgbm.joblib")
+STUDENT = Path(os.environ.get("STUDENT_OUT", "models/student_lgbm.joblib"))
 OUT = Path("reports/distill_results.json")
 N_TEST_NEG = 20_000
 
@@ -52,7 +53,10 @@ def main():
             Z[c] = Z[c].map(mapping).fillna(-1)
         return Z.astype("float64")
     Xd = apply_codes(dist)
-    y_teacher = dist["teacher_p"].to_numpy()
+    import os
+    _col = os.environ.get("TEACHER_COL", "teacher_p")
+    y_teacher = dist[_col].to_numpy()
+    print(f"teacher column: {_col}")
     print(f"distill: {len(Xd):,} filas · teacher p50={np.median(y_teacher):.4f}", flush=True)
 
     # student: regresión sobre la salida del teacher

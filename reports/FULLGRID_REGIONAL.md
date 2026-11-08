@@ -301,3 +301,33 @@ en full-grid, no en la muestra.
 
 Pipeline de producción = el mejor validado operativamente:
 forecast D-1 corregido NGR → LGBM 48 feats → isotónica → Stage 2 GLM+MEM.
+
+## 13. NVIDIA Kumo Tabular — segunda replicación del hallazgo
+
+Teacher 2 = Kumo Tabular large (NVIDIA, ICL, pesos locales HF, 215M params).
+
+### En la distribución muestreada — mejor que todos
+
+| Modelo | AUC | AP |
+|---|---|---|
+| **Kumo teacher** | **0.947** | — |
+| TabPFN teacher | 0.9387 | 0.165 |
+| LGBM labels | 0.8887 | 0.092 |
+
+### Operativa full-grid (student destilado de Kumo, 82 días) — falla igual
+
+| Métrica | Kumo destilado | TabPFN destilado | LGBM forecast (V3b) |
+|---|---|---|---|
+| recall top5 | 12.3% | 6.6% | **13.2%** |
+| recall top10 | 17.1% | 18.0% | **29.5%** |
+| AUC regional | 0.623 | 0.593 | — |
+| rec@10% región | 16.9% | 13.1% | — |
+
+**Hallazgo replicado con 2 foundation models independientes:** ganar en la
+distribución muestreada (más AUC que LGBM) implica estar MÁS comprometido con
+esa distribución → peor transferencia operativa. El LGBM clásico, menos
+expresivo, extrapola mejor al full-grid.
+
+Artefactos: `src/ardintra/models/kumo_teacher.py`, `reports/kumo_teacher.json`,
+`reports/fullgrid_eval_kumo.json`, `reports/fullgrid_regional_kumo.parquet`,
+`models/student_kumo.joblib`.

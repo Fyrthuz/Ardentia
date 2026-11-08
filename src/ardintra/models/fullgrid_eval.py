@@ -73,7 +73,7 @@ def main(target_thresh_ha: float = 10.0, shard: str = ""):
     if USE_DISTILLED:
         # blend 50/50: student destilado del teacher TabPFN + LGBM de labels
         import joblib
-        s_pack = joblib.load("models/student_lgbm.joblib")
+        s_pack = joblib.load(os.environ.get("ARDENTIA_STUDENT", "models/student_lgbm.joblib"))
         l_pack = joblib.load("models/lgbm_labels.joblib")
         stud, lmod = s_pack["model"], l_pack["model"]
         cat_maps_d = s_pack["cat_maps"]

@@ -1,0 +1,20 @@
+{
+  "kumo_teacher": {
+    "auc": 0.9489,
+    "ap": 0.2084,
+    "subsamples": 6,
+    "subsize": 10000
+  },
+  "ref_tabpfn": {
+    "auc": 0.9387,
+    "ap": 0.1653
+  },
+  "ref_lgbm": {
+    "auc": 0.8887,
+    "ap": 0.0922
+  },
+  "ood": {
+    "auc_kumo": 0.93,
+    "auc_tabpfn": 0.9458
+  }
+}
