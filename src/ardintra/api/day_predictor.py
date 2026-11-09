@@ -248,10 +248,13 @@ def predict_day(date_str: str) -> dict:
                   "lon": round(float(cells["lon"].iloc[j]), 5),
                   "p": round(float(p_cal[j]), 5)} for j in top_idx]
 
-    # 4) niveles de celda: bandas de probabilidad CALIBRADA (absolutas, sin empates
-    #    del suelo de la isotónica): Bajo <0.001 · Moderado <0.005 · Alto <0.02 ·
-    #    Muy alto <0.10 · Extremo ≥0.10  [P(≥10 ha | celda, día)]
-    levels = np.digitize(p_cal, [0.001, 0.005, 0.02, 0.10])
+    # 4) niveles de celda: PERCENTIL INTRA-DÍA consciente de empates
+    #    (los colores muestran DÓNDE se concentra el riesgo del día — el nivel
+    #    absoluto por celda no es recuperable fuera de la distribución de
+    #    calibración; la magnitud del día la dan λ y las regiones ×N del panel)
+    from scipy.stats import rankdata
+    pct = (rankdata(p_cal) - 0.5) / len(p_cal)
+    levels = np.digitize(pct, [0.40, 0.75, 0.90, 0.97])
 
     return {
         "fecha": str(day.date()),

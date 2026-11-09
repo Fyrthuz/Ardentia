@@ -52,7 +52,7 @@
   <details id="doc" style="font-size:10px;color:#666;margin-top:6px">
     <summary>¿Qué calcula la predicción real?</summary>
     <div style="margin-top:4px">
-      Por celda: <b>P(ignición ≥10 ha hoy | celda)</b> (LGBM 48 features, calibrado con isotónica).<br/>
+      Colores por celda: <b>percentil del día</b> — dónde se concentra el riesgo HOY (Bajo 40% · Moderado 35% · Alto 15% · Muy alto 7% · Extremo 3%). La magnitud real del día la dan λ y las regiones ×N.<br/>
       Por región res7: <b>P(≥1 fuego ≥10 ha hoy)</b> (Stage 2 GLM+MEM) y nº esperado de fuegos en Galicia (λ).<br/>
       Los fuegos reales de EGIF ese día se muestran como ⭐ para comparar.
     </div>
