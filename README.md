@@ -7,8 +7,8 @@ con piloto en **Galicia** y despliegue final en **Cloudflare**.
 > Documentación detallada en [`docs/`](docs/):
 > - [PREPROCESSING.md](docs/PREPROCESSING.md) — pipeline de preprocesamiento completo (fuentes → features → modelo)
 > - [EXPERIMENTS.md](docs/EXPERIMENTS.md) — diario de experimentos: adoptados y refutados con métricas
-> - [ROADMAP.md](docs/ROADMAP.md) — plan por fases y estado de implementación
 > - [DATA_MODEL.md](docs/DATA_MODEL.md) — organización del lake, features y etiquetas
+> - [PIPELINES.md](docs/PIPELINES.md) — guía operativa: cómo regenerar el sistema desde cero
 > - [SOURCES.md](docs/SOURCES.md) — fuentes de datos, rate limits y quirks
 
 ## Esencia del producto
@@ -128,11 +128,6 @@ Refutaciones documentadas (todas con números en `reports/FULLGRID_REGIONAL.md`)
 
 Adopciones: isotónica (Brier −45%), Stage 2 GLM+MEM (+12pp rec@10% regional),
 corrección NGR del forecast (RMSE −22%, leakage operativo eliminado).
-
-## Simulación visual
-
-- `reports/simulacion_2023_2panel.mp4` — **vídeo principal** (2 paneles, Stage 2)
-- `reports/simulacion_2023_res*.mp4` — versiones por resolución
 
 ## Estado (2026-10-31)
 

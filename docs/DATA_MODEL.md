@@ -70,5 +70,6 @@ data/
 ## Etiquetas
 
 - **Cualquier ignición ≥0.1 ha** (los micro-fogatas <0.1 ha = 40% de los partes pero el 0.09% del área quemada → filtrados como ruido de etiqueta)
-- **≥10 ha** ("fuego importante", el target de negocio)
-- Negativos 1:20 estacional (+40/día en res8) con exclusión de propagación (fuegos <1 km/±7 d) y **hard negatives estratificados** (near-space 1-3 km el mismo día; near-time la celda 8-21 días antes)
+- **≥10 ha** ("fuego importante", el target principal `big10`; 1.496 en train 2017-22 · 137 en test 2023-24)
+- Negativos deterministas (seed 42): 150/día random en temporada + 3/día en invierno (ratio global ~38:1) + **hard negatives** (NEAR-SPACE: anillo 1-3 km de fuegos del mismo día; NEAR-TIME: la celda 8-21 días antes, sin look-ahead) con exclusión de propagación (fuegos <1 km/±7 d).
+  Los muestreos alternativos (estratificación por combustible, high-danger-site) quedaron refutados — ver [EXPERIMENTS.md](EXPERIMENTS.md).

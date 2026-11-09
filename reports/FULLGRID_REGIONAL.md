@@ -1,5 +1,9 @@
 # Evaluación operativa full-grid y forecast regional probabilístico
 
+**Ciclo 2026-10-30/31** — el doc maestro del ciclo de experimentación adoptado
+por el [README principal](../README.md) y [docs/EXPERIMENTS.md](../docs/EXPERIMENTS.md).
+Los reportes del ciclo anterior (2026-10-29, gate Fase 2) están en `archive/`.
+
 **Fecha:** 2026-10-30 · Modelo: LGBM (600 árboles, lr 0.05, 48 features) · Target: ignición ≥10 ha
 
 ## 1. Evaluación operativa full-grid (82 días de test con fuegos ≥10 ha, 137 fuegos)
