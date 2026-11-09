@@ -83,14 +83,37 @@ def index() -> FileResponse:
     return FileResponse(STATIC / "index.html", media_type="text/html")
 
 
+NIVEL_TXT = ["Bajo", "Moderado", "Alto", "Muy alto", "Extremo"]
+
+
 @app.get("/v1/risk/cell/{h9}")
-def risk_cell(h9: str, scenario: str = "ola_de_calor") -> JSONResponse:
+def risk_cell(h9: str, scenario: str = "ola_de_calor", date: str | None = None) -> JSONResponse:
     idx = cells().set_index("h9")
     if h9 not in idx.index:
         raise HTTPException(404, "celda sin suelo forestal en el catálogo")
     row = idx.loc[h9].to_dict()
-    r = risk_scenario(scenario).set_index("h9")
-    sim = r.loc[h9, ["p_riesgo", "clase"]].to_dict() if h9 in r.index else {}
+
+    sim = None  # predicción real si hay fecha activa; simulada en caso contrario
+    if date:
+        try:
+            pd.Timestamp(date)
+        except ValueError:
+            raise HTTPException(400, "fecha inválida")
+        df, summary, _ = _forecast_day(date)
+        sel = df.loc[df["h9"] == h9]
+        if not sel.empty:
+            nivel = int(sel["level"].iloc[0])
+            sim = {
+                "p_riesgo": float(sel["p_cal"].iloc[0]),
+                "clase": nivel,
+                "clase_txt": NIVEL_TXT[nivel],
+                "escenario": f"predicción real {date}",
+                "real": True,
+            }
+    if sim is None:
+        r = risk_scenario(scenario).set_index("h9")
+        sim = r.loc[h9, ["p_riesgo", "clase"]].to_dict() if h9 in r.index else {}
+        sim["real"] = False
     ign = labels_ign().set_index("h9")
     if h9 in ign.index:
         irow = ign.loc[h9]
@@ -122,8 +145,9 @@ def risk_cell(h9: str, scenario: str = "ola_de_calor") -> JSONResponse:
         "sim": {
             "p_riesgo": float(sim.get("p_riesgo", -1)),
             "clase": int(sim.get("clase", -1)),
-            "clase_txt": CLASSES[int(sim["clase"])] if sim.get("clase", -1) >= 0 else "n/d",
-            "escenario": scenario,
+            "clase_txt": NIVEL_TXT[int(sim["clase"])] if sim.get("clase", -1) >= 0 else "n/d",
+            "escenario": sim.get("escenario", scenario),
+            "real": bool(sim.get("real", False)),
         },
         "egif": ign_info,
     }

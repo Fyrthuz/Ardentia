@@ -165,7 +165,10 @@ async function detail(h9){
   const el = document.getElementById("detail");
   el.innerHTML = "Cargando " + h9 + "…";
   try {
-    const r = await fetch(`/v1/risk/cell/${h9}?scenario=${scen}`);
+    const url = fcastDate
+      ? `/v1/risk/cell/${h9}?date=${fcastDate}`
+      : `/v1/risk/cell/${h9}?scenario=${scen}`;
+    const r = await fetch(url);
     const hl = map.getSource("hl");
     const setHL = boundary => { if (hl) hl.setData(boundary
       ? { type: "Feature", geometry: { type: "Polygon", coordinates: [[...boundary, boundary[0]]] } }
@@ -180,10 +183,15 @@ async function detail(h9){
     window._lastH9 = h9;
     setHL(j.boundary);
     const s = j.static, sim = j.sim, eg = j.egif;
+    const probaTxt = sim.real
+      ? `<span class="chip" style="background:${LAYER_COLORS[sim.clase_txt] ?? "#666"}">${sim.clase_txt}</span>
+       <span class="lbl" style="margin-left:6px">predicción real ${fcastDate}</span>
+       <div class="row" style="margin-top:8px"><span class="lbl">P(ignición ≥10 ha hoy)</span> <b>${(sim.p_riesgo*100).toFixed(2)}%</b></div>`
+      : `<span class="chip" style="background:${LAYER_COLORS[sim.clase_txt] ?? "#666"}">${sim.clase_txt ?? "n/d"}</span>
+       <span class="lbl" style="margin-left:6px">${SCEN_NAMES[scen]} (simulado)</span>
+       <div class="row" style="margin-top:8px"><span class="lbl">Probabilidad simulada</span> <span class="val">${(sim.p_riesgo*100).toFixed(1)}%</span></div>`;
     el.innerHTML = `
-      <span class="chip" style="background:${LAYER_COLORS[sim.clase_txt] ?? "#666"}">${sim.clase_txt ?? "n/d"}</span>
-      <span class="lbl" style="margin-left:6px">${SCEN_NAMES[scen]}</span>
-      <div class="row" style="margin-top:8px"><span class="lbl">Probabilidad simulada</span> <span class="val">${(sim.p_riesgo*100).toFixed(1)}%</span></div>
+      ${probaTxt}
       <div class="row"><span class="lbl">Celda H3 res9</span> <span class="val">${h9}</span></div>
       <hr/>
       <div class="row"><b>Combustible</b><br/>modelo Rothermel ${s.fuel_model ?? "n/d"} · fracción forestal ${(s.forest_frac*100).toFixed(0)}%</div>
