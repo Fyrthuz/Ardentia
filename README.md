@@ -5,9 +5,11 @@ de incendios forestales en España a escala de malla hexagonal H3 res9 (~105 m·
 con piloto en **Galicia** y despliegue final en **Cloudflare**.
 
 > Documentación detallada en [`docs/`](docs/):
+> - [PREPROCESSING.md](docs/PREPROCESSING.md) — pipeline de preprocesamiento completo (fuentes → features → modelo)
+> - [EXPERIMENTS.md](docs/EXPERIMENTS.md) — diario de experimentos: adoptados y refutados con métricas
 > - [ROADMAP.md](docs/ROADMAP.md) — plan por fases y estado de implementación
 > - [DATA_MODEL.md](docs/DATA_MODEL.md) — organización del lake, features y etiquetas
-> - [SOURCES.md](docs/SOURCES.md) — fuentes de datos, credenciales, rate limits y quirks
+> - [SOURCES.md](docs/SOURCES.md) — fuentes de datos, rate limits y quirks
 
 ## Esencia del producto
 
@@ -79,6 +81,35 @@ Forecast D-1 (HRES vía Open-Meteo, corrección NGR-lite por estación)
 panel izquierdo = celdas res9 por percentil de riesgo calibrado; panel derecho =
 P(≥1 fuego ≥10 ha) por región res7 con el modelo Stage 2, etiquetas ×N (riesgo
 vs base rate) en las top-3 del día; pie con λ diario y fuegos reales (⭐ ≥10 ha).
+
+## Webapp interactiva (predicción real por día)
+
+```bash
+uv run uvicorn ardintra.api.mini_api:app --port 8001
+# abrir http://localhost:8001
+```
+
+El visor MapLibre integra el **sistema completo real**: elige una fecha →
+"Predecir" → construye las 245.172 celdas de features (forecast D-1 del día,
+satélite, recencia, viaria) → celda: P(ignición ≥10 ha) calibrada; región:
+P(≥1 fuego ≥10 ha) (Stage 2 GLM+MEM); λ diario; y los fuegos reales de EGIF
+de ese día como ⭐ para comparar. (`GET /v1/forecast/{date}`,
+`GET /overlay/forecast/{date}.png`.)
+
+## Visual
+
+**Temporada 2023 con el sistema completo** (`reports/simulacion_2023_2panel.mp4`,
+2 paneles: celdas res9 + regiones res7 con P(≥1) y etiquetas ×N; pie con λ diario
+y fuegos reales ⭐):
+
+| Día pico (12-oct-2023, 6 fuegos ≥10 ha) | Inicio de temporada |
+|---|---|
+| ![Pico octubre](docs/media/ejemplo_fuego_pico.png) | ![Primavera](docs/media/ejemplo_primavera.png) |
+
+Gráficas del ciclo: [curvas ROC/PR](reports/figures/curvas_roc_pr.png) ·
+[ablación](reports/figures/ablacion.png) ·
+[resoluciones](reports/figures/resoluciones.png). Otros vídeos por resolución:
+`reports/simulacion_2023_res{4..9}.mp4`.
 
 ## Lecciones del ciclo de experimentación (2026-10-30/31)
 

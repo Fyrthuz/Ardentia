@@ -27,6 +27,7 @@ from PIL import Image, ImageDraw
 from pyproj import Transformer
 
 from ardintra.features.risk_sim import ABS_CUTS, CLASSES, PRESETS, RAMP, risk_for_scenario
+from ardintra.api.day_predictor import predict_day, fuegos_del_dia
 
 API_DIR = Path(__file__).resolve().parent
 STATIC = API_DIR / "static"
@@ -262,6 +263,59 @@ def _geojson(df: pd.DataFrame, props: list[str]) -> dict:
             "properties": d,
         })
     return {"type": "FeatureCollection", "features": feats}
+
+
+# ===== Predicción real del pipeline completo: selección de día ============= #
+
+@lru_cache(maxsize=4)
+def _forecast_day(date: str) -> tuple[pd.DataFrame, dict, list[dict]]:
+    o = predict_day(date)
+    arrays = o.pop("_arrays")
+    df = pd.DataFrame({
+        "h9": arrays["h9"], "p_cal": arrays["p_cal"], "level": arrays["levels"],
+    })
+    fires = fuegos_del_dia(date)
+    return df, o, fires
+
+
+@app.get("/v1/forecast/{date}")
+def forecast_day(date: str) -> JSONResponse:
+    """Pipeline completo sobre un día: features full-grid + LGBM + isotónica +
+    Stage 2 regional. Devuelve λ diario, top regiones (×N), top celdas y los
+    fuegos reales de ese día (EGIF)."""
+    try:
+        pd.Timestamp(date)
+    except ValueError:
+        raise HTTPException(400, "fecha inválida (formato AAAA-MM-DD)")
+    df, summary, fires = _forecast_day(date)
+    return JSONResponse({
+        **summary,
+        "fuegos_reales": fires,
+        "n_fuegos_reales": len(fires),
+        "explicacion": {
+            "celda": "P(ignición ≥10 ha hoy | celda) — LGBM calibrado con isotónica",
+            "region": "P(≥1 fuego ≥10 ha hoy en la región res7) — Stage 2 GLM+MEM",
+            "riesgo_x": "riesgo relativo vs la media histórica de la región-día",
+            "lambda_galicia": "Nº esperado de fuegos ≥10 ha en Galicia ese día (Σμ Stage 2)",
+        },
+    })
+
+
+@app.get("/overlay/forecast/{date}.png")
+def overlay_forecast(date: str, width: int = 1600, palette: str = "discreta") -> Response:
+    """Mapa de niveles de riesgo por celda para el día elegido."""
+    try:
+        pd.Timestamp(date)
+    except ValueError:
+        raise HTTPException(400, "fecha inválida")
+    df, _, _ = _forecast_day(date)
+    W, H = _png_grid(width)
+    ramp = np.asarray(RAMP, dtype=np.uint8)
+    img = _voronoi_img(W, H, ramp[df["level"].to_numpy()])
+    bio = io.BytesIO()
+    img.save(bio, format="PNG")
+    return Response(content=bio.getvalue(), media_type="image/png",
+                    headers={"Cache-Control": "max-age=3600"})
 
 
 
