@@ -315,7 +315,7 @@ def overlay_forecast(date: str, width: int = 1600, palette: str = "discreta") ->
     bio = io.BytesIO()
     img.save(bio, format="PNG")
     return Response(content=bio.getvalue(), media_type="image/png",
-                    headers={"Cache-Control": "max-age=3600"})
+                    headers={"Cache-Control": "no-store"})
 
 
 
