@@ -122,25 +122,6 @@ def _s2_for_year(year: int) -> np.ndarray:
     return np.full((len(cells), 3), np.nan, dtype="float32")
 
 
-@lru_cache(maxsize=1)
-def _season_reference() -> np.ndarray:
-    """p calibradas sobre TODAS las filas de entrenamiento (≤2022) de temporada:
-    base del percentil coloreable (misma referencia que el vídeo)."""
-    df = pd.read_parquet(DATA / "features/v1/dataset.parquet")
-    surf = pd.to_numeric(df["surface_ha"], errors="coerce").fillna(0)
-    df["big10"] = ((df["label"] == 1) & (surf >= 10)).astype(int)
-    df = df[df["fwi"].notna() & (df["fecha"].dt.year <= 2022)
-            & df["fecha"].dt.month.isin([5, 6, 7, 8, 9, 10])].reset_index(drop=True)
-    pack = _lgbm_pack()
-    Z = df[pack["feats"]].copy()
-    for c, mapping in pack["cat_maps"].items():
-        if c in Z.columns:
-            Z[c] = Z[c].map(mapping).fillna(-1)
-    Z = Z.astype("float64")
-    p_raw = pack["model"].predict_proba(Z)[:, 1]
-    return np.sort(_iso().predict(p_raw))
-
-
 def _idw(day: pd.Timestamp, ii: np.ndarray, w: np.ndarray, st_ids,
          pivots: dict) -> dict:
     out = {}
@@ -267,10 +248,10 @@ def predict_day(date_str: str) -> dict:
                   "lon": round(float(cells["lon"].iloc[j]), 5),
                   "p": round(float(p_cal[j]), 5)} for j in top_idx]
 
-    # 4) niveles de celda: percentil vs temporada de train
-    val_sorted = _season_reference()
-    pct = np.searchsorted(val_sorted, p_cal, side="right") / len(val_sorted)
-    levels = np.digitize(pct, [0.40, 0.75, 0.90, 0.97])
+    # 4) niveles de celda: bandas de probabilidad CALIBRADA (absolutas, sin empates
+    #    del suelo de la isotónica): Bajo <0.001 · Moderado <0.005 · Alto <0.02 ·
+    #    Muy alto <0.10 · Extremo ≥0.10  [P(≥10 ha | celda, día)]
+    levels = np.digitize(p_cal, [0.001, 0.005, 0.02, 0.10])
 
     return {
         "fecha": str(day.date()),

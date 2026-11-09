@@ -237,7 +237,7 @@ async function predictDay(){
       map.addLayer({id: "fcast-fires-s", type: "symbol", source: fsrcId,
         layout: {"text-field": ["case", [">=", ["get", "ha"], 10], "★", "◦"],
                  "text-size": ["case", [">=", ["get", "ha"], 10], 22, 14],
-                 "text-font": ["Open Sans Regular"]},
+                 "text-font": ["Noto Sans Regular"]},
         paint: {"text-color": ["case", [">=", ["get", "ha"], 10], "#8b0000", "#1a56db"],
                 "text-halo-color": "#fff", "text-halo-width": 1}});
     } else {
