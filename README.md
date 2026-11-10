@@ -93,8 +93,16 @@ El visor MapLibre integra el **sistema completo real**: elige una fecha →
 "Predecir" → construye las 245.172 celdas de features (forecast D-1 del día,
 satélite, recencia, viaria) → celda: P(ignición ≥10 ha) calibrada; región:
 P(≥1 fuego ≥10 ha) (Stage 2 GLM+MEM); λ diario; y los fuegos reales de EGIF
-de ese día como ⭐ para comparar. (`GET /v1/forecast/{date}`,
-`GET /overlay/forecast/{date}.png`.)
+de ese día como ⭐ para comparar.
+
+- **Explicabilidad TreeSHAP**: click en cualquier celda con predicción activa →
+  factores que suben/bajan su score (log-odds, valores originales).
+  (`GET /v1/explain/{date}/{h9}`)
+- **Boletín del día** (📋): λ, regiones destacadas ×N, factores globales del día
+  (media |SHAP|) y comparación con los fuegos reales. Con `ANTHROPIC_API_KEY`
+  en el entorno se genera en prosa operativa vía LLM; sin clave, resumen determinista.
+- Endpoints: `GET /v1/forecast/{date}`, `GET /overlay/forecast/{date}.png`,
+  `GET /v1/explain/{date}/{h9}`, `GET /v1/bulletin/{date}`.
 
 ## Visual
 

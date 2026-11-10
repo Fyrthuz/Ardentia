@@ -33,7 +33,9 @@
   <div style="display:flex;gap:6px;align-items:center">
     <input type="date" id="fdate" value="2024-07-14" min="2023-01-01" style="flex:1;padding:4px"/>
     <button id="btn_fcast" onclick="predictDay()" style="padding:5px 10px;border:0;border-radius:6px;background:#c0392b;color:#fff;cursor:pointer;font-weight:600">Predecir</button>
+    <button onclick="showBulletin()" style="padding:5px 8px;border:0;border-radius:6px;background:#2c3e50;color:#fff;cursor:pointer" title="Boletín operacional del día">📋</button>
   </div>
+  <div id="bulletin" class="row" style="display:none;margin-top:6px;background:#f7f7f7;border-radius:8px;padding:8px;font-size:11px"></div>
   <div id="fcast" class="row" style="margin-top:6px;display:none"></div>
   <hr/>
   <h3 style="margin:0 0 6px;font-size:14px">Escenario (simulado)</h3>
@@ -210,10 +212,27 @@ async function detail(h9){
       <hr/>
       <div class="row"><b>Incendios reales (EGIF 2017–23)</b><br/>
       ${eg.n_igniciones ? `⦿ ${eg.n_igniciones} ignición(es) — primera ${eg.primera}, causa ${causaTxt(eg.causa)}, superficie acumulada ${eg.superficie_ha} ha` : "sin igniciones registradas"}</div>`;
+  if (fcastDate && sim && sim.real) explainShap(h9, fcastDate);
   } catch (err) {
     el.innerHTML = `<span class="warn">Error fetch: ${err}</span>`;
   }
 }
+async function explainShap(h9, date){
+  const elsh = document.getElementById("shaps");
+  try {
+    const r = await fetch(`/v1/explain/${date}/${h9}`);
+    const j = await r.json();
+    if (j.error) { elsh.textContent = j.error; return; }
+    const arrow = (sign, arr) => arr.map(f =>
+      `<div style="margin:2px 0">${sign==="+" ? "🔺" : "🔻"} ${f.nombre} = <b>${f.valor}</b>
+        <span style="opacity:.65">(${sign}${f.contribucion.toFixed(2)} log-odds)</span></div>`).join("");
+    elsh.innerHTML = `<b>¿Por qué esta celda?</b> (TreeSHAP · log-odds)` +
+      (j.sube.length ? arrow("+", j.sube) : "") + (j.baja.length ? arrow("-", j.baja) : "");
+  } catch (e) {
+    if (elsh) elsh.textContent = "SHAP no disponible";
+  }
+}
+
 function solaTxt(s){ return (s.aspect_deg >= 120 && s.aspect_deg <= 260) ? "solana" : "umbría"; }
 function causaTxt(id){ return CAUSA_TXT[id] ?? ("código " + id); }
 
@@ -276,6 +295,29 @@ async function predictDay(){
     el.innerHTML = `<span class="warn">Error: ${err}</span>`;
   } finally {
     btn.disabled = false; btn.textContent = "Predecir";
+  }
+}
+
+async function showBulletin(){
+  const el = document.getElementById("bulletin");
+  const date = document.getElementById("fdate").value;
+  el.style.display = "block";
+  el.innerHTML = "⏳ Generando boletín…";
+  try {
+    const r = await fetch(`/v1/bulletin/${date}`);
+    const j = await r.json();
+    const fireTxt = j.n_fuegos_reales
+      ? `${j.n_fuegos_reales} igniciones reales (EGIF)`
+      : "sin igniciones registradas";
+    const fac = (j.factores_dia ?? []).slice(0, 4).map(f => `#${f.nombre}`).join(" · ");
+    const regs = (j.regiones_top ?? []).map(t => `⬢ P(≥1)=${(t.p_alguno*100).toFixed(2)}% · ×${t.riesgo_x}`).join(" | ");
+    el.innerHTML = `<b>Boletín ${j.fecha}</b> (${j.meteo_source})<br/>
+      λ esperado: <b>${j.lambda_galicia.toFixed(2)}</b> fuegos ≥10 ha · ${fireTxt}<br/>
+      Regiones destacadas: ${regs || "—"}<br/>
+      Factores del día: <b>${fac}</b>
+      <div style="margin-top:4px;color:#888">(resumen determinista del pipeline; LLM opcional con OPENAI_API_KEY/ANTHROPIC_API_KEY)</div>`;
+  } catch (e) {
+    el.innerHTML = `<span class="warn">Boletín no disponible: ${e}</span>`;
   }
 }
 

@@ -13,6 +13,7 @@ Endpoints:
 from __future__ import annotations
 
 import io
+import json
 import math
 from functools import lru_cache
 from pathlib import Path
@@ -28,6 +29,7 @@ from pyproj import Transformer
 
 from ardintra.features.risk_sim import ABS_CUTS, CLASSES, PRESETS, RAMP, risk_for_scenario
 from ardintra.api.day_predictor import predict_day, fuegos_del_dia
+from ardintra.api.explanation import explain_cell, explain_day_global
 
 API_DIR = Path(__file__).resolve().parent
 STATIC = API_DIR / "static"
@@ -377,3 +379,64 @@ def overlay_roads() -> JSONResponse:
         for g, rc in zip(r.geometry, r["road_class"], strict=True)
     ]
     return JSONResponse({"type": "FeatureCollection", "features": feats})
+
+
+@app.get("/v1/explain/{date}/{h9}")
+def explain_cell_endpoint(date: str, h9: str, top: int = 4) -> JSONResponse:
+    """TreeSHAP por celda: factores que suben/bajan el score ese día."""
+    try:
+        return JSONResponse(explain_cell(date, h9, top=top))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(500, str(e))
+
+
+@app.get("/v1/bulletin/{date}")
+def bulletin(date: str) -> JSONResponse:
+    """Datos para el boletín del día: resumen regional + factores globales
+    (media |SHAP| día) + fuegos reales si el día ya es histórico."""
+    try:
+        pd.Timestamp(date)
+    except ValueError:
+        raise HTTPException(400, "fecha inválida")
+    summary = forecast_day(date)
+    fires = fuegos_del_dia(date)
+    data = json.loads(summary.body.decode())
+    data["factores_dia"] = explain_day_global(date)
+    data["fuegos_reales"] = fires
+    data["n_fuegos_reales"] = len(fires)
+    # boletín en prosa si hay clave de LLM; resumen determinista si no
+    facts = {
+        "fecha": data["fecha"], "fuente": data["meteo_source"],
+        "lambda_fuegos_esperados": data["lambda_galicia"],
+        "fuegos_reales": data["n_fuegos_reales"],
+        "regiones_top": [{"P_alguno": r["p_alguno"], "riesgo_x": r["riesgo_x"]}
+                         for r in data["regiones_top"]],
+        "factores_dia": data["factores_dia"],
+    }
+    texto = _llm_bulletin(facts)
+    data["boletin"] = texto or ""
+    data["boletin_llm"] = bool(texto)
+    return JSONResponse(data)
+
+
+def _llm_bulletin(facts: dict) -> str | None:
+    """Prosa operativa vía LLM si hay clave en el entorno; None → fallback determinista."""
+    import os as _os
+    import httpx
+    prompt = ("Eres el analista de incendios de Galicia. Con estos datos del pipeline, "
+              "escribe un boletín operacional breve (5-6 frases, español, sin tecnicismos "
+              "innecesarios) para el equipo de emergencias. NO inventes datos. Datos: "
+              + json.dumps(facts, ensure_ascii=False))
+    key = _os.environ.get("ANTHROPIC_API_KEY")
+    if key:
+        try:
+            r = httpx.post("https://api.anthropic.com/v1/messages",
+                           headers={"x-api-key": key, "anthropic-version": "2023-06-01"},
+                           json={"model": "claude-3-5-haiku-latest",
+                                 "max_tokens": 400, "messages": [{"role": "user", "content": prompt}]},
+                           timeout=60.0)
+            if r.status_code == 200:
+                return r.json()["content"][0]["text"]
+        except Exception:  # noqa: BLE001
+            pass
+    return None

@@ -136,12 +136,14 @@ def _idw(day: pd.Timestamp, ii: np.ndarray, w: np.ndarray, st_ids,
     return out
 
 
-def predict_day(date_str: str) -> dict:
+@lru_cache(maxsize=3)
+def _day_Z(date_str: str) -> tuple[pd.DataFrame, dict]:
+    """Features del día (Z, 245k×~48) para predicción y SHAP. Cacheado (≈95 MB)."""
     day = pd.Timestamp(date_str).normalize()
     cells = _cells()
     mc = _met_context()
     pack = _lgbm_pack()
-    model, feats, cat_maps = pack["model"], pack["feats"], pack["cat_maps"]
+    feats, cat_maps = pack["feats"], pack["cat_maps"]
 
     d = cells.copy()
     day64 = np.datetime64(day.date())
@@ -208,12 +210,26 @@ def predict_day(date_str: str) -> dict:
     d["n_ign_near_2d"] = n2
     d["n_ign_cell_3d"] = n2
 
-    # 1-2) LGBM + isotónica
     Z = d[feats].copy()
     for c, mapping in cat_maps.items():
         if c in Z.columns:
             Z[c] = Z[c].map(mapping).fillna(-1)
     Z = Z.astype("float64")
+    return Z, {"fecha": str(day.date()), "src": src, "d": d, "n_afectadas": n_afectadas}
+
+
+def predict_day(date_str: str) -> dict:
+    day = pd.Timestamp(date_str).normalize()
+    cells = _cells()
+    mc = _met_context()
+    pack = _lgbm_pack()
+    model, feats = pack["model"], pack["feats"]
+    Z, meta = _day_Z(date_str)
+    d = meta["d"]
+    src = meta["src"]
+    n_afectadas = meta["n_afectadas"]
+
+    # 1-2) LGBM + isotónica
     p_raw = model.predict_proba(Z)[:, 1]
     p_cal = _iso().predict(p_raw)
 
