@@ -237,6 +237,13 @@ function causaTxt(id){ return CAUSA_TXT[id] ?? ("código " + id); }
 // ===== Predicción real por día (pipeline completo del sistema) ============ //
 let fcastDate = null;   // fecha activa del forecast real
 
+let _tickerId = null;
+function _tick(scope, t0){
+  const el = document.getElementById(scope);
+  if (!el) return;
+  el.innerHTML = `⏳ Construyendo 245.172 celdas de features y ejecutando el pipeline… <b>${Math.round((Date.now()-t0)/1000)}s</b>`;
+}
+
 async function predictDay(){
   const date = document.getElementById("fdate").value;
   const el = document.getElementById("fcast");
@@ -244,13 +251,18 @@ async function predictDay(){
   if (!date) return;
   btn.disabled = true; btn.textContent = "Calculando…";
   el.style.display = "block";
-  el.innerHTML = "⏳ Construyendo 245.172 celdas de features y ejecutando el pipeline… (tarda ~1-2 min la primera vez)";
+  const t0 = Date.now();
+  _tick("fcast", t0);
+  if (_tickerId) clearInterval(_tickerId);
+  _tickerId = setInterval(() => _tick("fcast", t0), 1000);
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), 300000);   // 5 min de tope
   try {
-    const r = await fetch(`/v1/forecast/${date}`);
-    if (!r.ok) { el.innerHTML = `<span class="warn">Error ${r.status}: ${await r.text()}</span>`; return; }
+    const r = await fetch(`/v1/forecast/${date}`, {signal: abort.signal});
+    if (!r.ok) { el.innerHTML = `<span class="warn">Error ${r.status}: ${(await r.text()).slice(0,200)}</span>`; return; }
     const j = await r.json();
     fcastDate = date;
-    // capa raster de celdas — remove+re-add (updateImage falla silenciosamente con rasters cacheados)
+    // capa raster de celdas — remove+re-add (updateImage falla con rasters cacheados)
     const layId = "fcast-layer";
     const url = `/overlay/forecast/${j.fecha}.png?t=${Date.now()}`;
     if (map.getLayer(layId)) map.removeLayer(layId);
@@ -278,16 +290,18 @@ async function predictDay(){
       <b style="font-size:13px">${j.fecha}</b> <span class="lbl">(${j.meteo_source})</span>
       <div class="row">λ nº esperado de fuegos ≥10 ha: <b>${j.lambda_galicia.toFixed(2)}</b></div>
       ${(j.riesgo_dia || j.paleta) ? `<div class="row" style="color:#555">Paleta: ${j.riesgo_dia?.paleta || j.paleta}${j.riesgo_dia?.fwi_mediana != null ? ` · FWI mediana ${j.riesgo_dia.fwi_mediana}` : ""}</div>` : ""}
-      <div class="row">⭐ fuegos reales ese día: <b>${j.n_fuegos_reales}</b> ${j.n_fuegos_reales ? "(⭐ ≥10 ha · ◦ <10 ha en mapa)" : "(no hubo igniciones ≥0.1 ha)"}</div>
+      <div class="row">⭐ fuegos reales ese día: <b>${j.n_fuegos_reales}</b> ${j.n_fuegos_reales ? "(rojo ≥10 ha · azul <10 ha en mapa)" : "(no hubo igniciones ≥0.1 ha)"}</div>
       <div class="row">Celda máx: <b>${(j.p_celda_max*100).toFixed(2)}%</b></div>
       ${mx && mx.length ? `<hr/><div class="row"><b>Top regiones del día</b></div>` +
         mx.map(t => `<div class="row">⬢ ${t.region.slice(0,9)} · P(≥1)=<b>${(t.p_alguno*100).toFixed(2)}%</b> · riesgo <b>×${t.riesgo_x}</b> vs media</div>`).join("")
         : ""}
       <div class="warn" style="margin-top:4px">Fuente: pipeline LGBM+isotónica+Stage2 · ver docs/EXPERIMENTS.md</div>`;
   } catch (err) {
+    el.innerHTML = `<span class="warn">Error: ${err.name === "AbortError" ? "timeout 5 min — reintenta" : err}</span>`;
   } finally {
+    clearTimeout(timer);
     if (_tickerId) { clearInterval(_tickerId); _tickerId = null; }
-    if (!quiet) { btn.disabled = false; btn.textContent = "Predecir"; }
+    btn.disabled = false; btn.textContent = "Predecir";
   }
 }
 

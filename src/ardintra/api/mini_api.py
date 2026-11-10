@@ -96,7 +96,8 @@ _BBOX = (-9.65, 41.75, -6.60, 43.95)
 
 @app.get("/")
 def index() -> FileResponse:
-    return FileResponse(STATIC / "index.html", media_type="text/html")
+    return FileResponse(STATIC / "index.html", media_type="text/html",
+                        headers={"Cache-Control": "no-store"})
 
 
 NIVEL_TXT = ["Bajo", "Moderado", "Alto", "Muy alto", "Extremo"]
