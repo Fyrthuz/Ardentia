@@ -1,83 +1,85 @@
-# Pipeline completo de preprocesamiento
+# Full preprocessing pipeline
 
-Chain raw → interim → processed → features → modelos. Sin GEE y sin API keys
-para los datos satelitales (STAC público AWS). Las fases correspondientes al
-lake están en [DATA_MODEL.md](DATA_MODEL.md) y la guía operativa en
-[PIPELINES.md](PIPELINES.md); aquí está el qué-y-porqué de cada paso.
+Chain raw → interim → processed → features → models. No GEE and no API keys
+required for the satellite data (public STAC on AWS). The lake layout is in
+[DATA_MODEL.md](DATA_MODEL.md) and the operational run guide in
+[PIPELINES.md](PIPELINES.md); this document explains the what-and-why of each
+step.
 
-## 1. Ingesta y limpieza por fuente
+## 1. Per-source ingestion and cleaning
 
-| Fuente | Proceso clave | Producto |
+| Source | Key processing step | Product |
 |---|---|---|
-| **EGIF** (164.620 partes 2016-2024) | normalización a XLSX oficial → parquet largo; geocodificación paraje→lat/lon; filtro `in_bbox` (Galicia); dedupe por `numeroparte`; códigos de causa preservados (`idcausa`: 100=rayo, 3xx=negligencia, 4xx=intencionada, 5xx=reproducción, 6xx=otras) | `data/interim/egif/parts_normalized.parquet` |
-| **EFFIS WFS** | perímetros ≥30 ha (WFS 1.0.0), intersección con celdas H3 | `labels/v1/burned_cells.parquet` |
-| **AEMET OpenData** | obs horaria en tiempo real (crontab); backfill histórico con pacing (~15k req límite) | `data/raw/aemet/` |
-| **Open-Meteo Archive** | backfill diario 2017→hoy por estación (57): tmax/tmin/prec/viento/RH — una llamada bulk por bloque de 10 estaciones | `data/raw/openmeteo/daily_2017_today.parquet` |
-| **Open-Meteo Historical Forecast** | forecast D-1 por estación (lead ~24h, pasadas HRES archivadas) 2023→hoy | `data/raw/openmeteo/forecast_daily.parquet` → `met_fc.parquet` |
-| **ERA5-Land (CDS)** | humedad de suelo 2 capas + VPD, remuestreo al grid de celdas | `era5_features()` |
-| **Sentinel-2 (STAC AWS)** | composites de VERANO por año (NDMI/NDVI/NBR @100 m, 8/8 años 2017-2024), mosaico local sin auth | `data/raw/s2/s2_summer_*.tif` |
-| **OSM** | red drivable completa + edificios (446k); derivados: `dist_to_road`, `road_class`, `road_density_1km`, `road_fuel_interface` (vía cuyo arcén toca combustible denso) | `res9_static.parquet` |
-| **DEM GLO-30 + MDT25 IGN** | elevación, pendiente, orientación | idem |
-| **MFE25** | mapa forestal: `fuel_model` (Rothermel `n_MODCOM` 1-13), `forest_frac` | idem |
+| **EGIF** (164,620 fire reports 2016-2024) | official XLSX normalization → long parquet; paraje→lat/lon geocoding; `in_bbox` (Galicia) filter; dedupe on `numeroparte`; cause codes preserved (`idcausa`: 100=lightning, 3xx=negligence, 4xx=arson, 5xx=re-ignition, 6xx=other) | `data/interim/egif/parts_normalized.parquet` |
+| **EFFIS WFS** | burned perimeters ≥30 ha (WFS 1.0.0), intersected with H3 cells | `labels/v1/burned_cells.parquet` |
+| **AEMET OpenData** | hourly obs in real time (crontab); historical backfill with pacing (~15k request limit) | `data/raw/aemet/` |
+| **Open-Meteo Archive** | daily backfill 2017→today for 57 stations (tmax/tmin/prec/wind/RH) — one bulk call per block of 10 stations | `data/raw/openmeteo/daily_2017_today.parquet` |
+| **Open-Meteo Historical Forecast** | day-D weather issued on D-1 (lead ~24h, archived HRES runs) 2023→today | `data/raw/openmeteo/forecast_daily.parquet` → `met_fc.parquet` |
+| **ERA5-Land (CDS)** | soil moisture 2 layers + VPD, resampled to the cell grid | `era5_features()` |
+| **Sentinel-2 (STAC AWS)** | SUMMER composites per year (NDMI/NDVI/NBR @100 m, 8/8 years 2017-2024), local mosaic without auth | `data/raw/s2/s2_summer_*.tif` |
+| **OSM** | full drivable network + 446k buildings; derived: `dist_to_road`, `road_class`, `road_density_1km`, `road_fuel_interface` (a road whose shoulder touches dense fuel) | `res9_static.parquet` |
+| **DEM GLO-30 + MDT25 IGN** | elevation, slope, aspect | idem |
+| **MFE25** | forest map: `fuel_model` (Rothermel `n_MODCOM` 1-13), `forest_frac` | idem |
 
-## 2. Mallado H3
+## 2. H3 gridding
 
-- **res9 (~105 m, 245.172 celdas forestales)** = producción (predicción por celda)
-- res7 (5.2 km, 5.710 hexágonos) = agregación regional (Stage 2)
-- Tabla maestra `h3_cells/res9_static.parquet`: todas las estáticas por celda.
+- **res9 (~105 m, 245,172 forest cells)** = production (per-cell prediction)
+- res7 (5.2 km, 5,710 hexagons) = regional aggregation (Stage 2)
+- Master table `h3_cells/res9_static.parquet`: all static features per cell.
 
-## 3. Etiquetas y muestreo (res9)
+## 3. Labels and sampling (res9)
 
-- Positivo: ignición EGIF/EFFIS en la celda-día (`surface_ha ≥ 0.1`)
-- Target principal `big10`: ignición con `surface_ha ≥ 10` (1.496 en 2017-24;
-  137 en test 2023-24)
-- Negativos (seed 42, determinista): 150/día random en temporada (3 invierno)
-  + tier NEAR-SPACE (anillo 1-3 km de fuegos del mismo día, 40/día) + NEAR-TIME
-  (la celda que arderá 8-21 días antes — "hard negative" temporal, sin look-ahead)
-- Filtro de contaminación: descarte de (celda,día) a <1 km de un fuego ±7 días
-  (es propagación del mismo evento, no ausencia real)
-- Split temporal estricto: train ≤2022 (206.714 filas) · test 2023-24 (60.498).
-  El test jamás entra en ninguna decisión de modelado.
+- Positive: EGIF/EFFIS ignition in the cell-day (`surface_ha ≥ 0.1`)
+- Primary target `big10`: ignition with `surface_ha ≥ 10` (1,496 in 2017-24;
+  137 in test 2023-24)
+- Negatives (seed 42, deterministic): 150/day random in fire season (3/day in
+  winter) + NEAR-SPACE tier (1-3 km ring around same-day fires, 40/day) +
+  NEAR-TIME (the cell that will burn 8-21 days later — temporal "hard
+  negative", no look-ahead)
+- Contamination filter: discards (cell, day) pairs within 1 km of a fire
+  ±7 days (they are propagation of the same event, not true absence)
+- Strict temporal split: train ≤2022 (206,714 rows) · test 2023-24 (60,498).
+  The test set never enters any modeling decision.
 
-## 4. Features (48 + causa, columnas por fila celda-día)
+## 4. Features (48 + cause, per cell-day row)
 
-- **Meteorología/FWI estación-día** (18): tmax, RH, viento, precip, ffmc/dmc/dc/isi/bui/fwi,
-  ffmc_7d, fwi_7d, fwi_prev, ffmc/dmc/dc anoma (vs su media 7d), spei30, spei90.
-  Por celda vía **IDW de las 3 estaciones más cercanas** (pesos 1/d²).
+- **Station weather/FWI** (18): tmax, RH, wind, precip, ffmc/dmc/dc/isi/bui/fwi,
+  ffmc_7d, fwi_7d, fwi_prev, ffmc/dmc/dc anomalies (vs 7d mean), spei30, spei90.
+  Per cell via **IDW over the 3 nearest stations** (weights 1/d²).
 - **ERA5-Land** (4): swc_l1/l2_mean, vpd_max, vpd_mean
-- **Satélite prev-summer** (4): ndmi/ndvi/nbr del verano anterior + ndmi_anom
-- **Estáticas** (10): forest_frac, fuel_model, pendiente, sin/cos orientación, elevación,
-  log dist a vía, log densidad viaria, interfaz vía-combustible, road_class
-- **Recencia** (3): días desde el último fuego ≤5 km, dist a él, ardió ≤1 km en 1 año
-- **Lags de ignición** (3): nº igniciones en la celda (3d) y radios 2.5/5 km (2d/7d)
-- **Estacional/antrópico** (5): doy sin/cos, es_finde, dens_x_weekend, lat/lon
-- **Causa** (analítica, no feature de modelo): `cause`, `es_humana` (76% humanas), `es_rayo`
+- **Prev-summer satellite** (4): NDMI/NDVI/NBR of the previous summer + NDMI anomaly
+- **Statics** (10): forest_frac, fuel_model, slope, aspect sin/cos, elevation,
+  log distance to road, log road density, road-fuel interface, road_class
+- **Fire recency** (3): days since last fire ≤5 km, distance to it, burned ≤1 km in past year
+- **Ignition lags** (3): ignition count in the cell (3d) and in 2.5/5 km radii (2d/7d)
+- **Seasonal/human** (5): doy sin/cos, weekend flag, road-density×weekend, lat/lon
+- **Cause** (analytical, not a model feature): `cause`, `es_humana` (76% human), `es_rayo`
 
-## 5. Modelado y calibración
+## 5. Modeling and calibration
 
-1. **LGBM** (600 árboles, lr 0.05, 31 hojas, `scale_pos_weight` ~39) sobre las
-   filas muestreadas → `P(ignición ≥10 ha | celda, día)` cruda.
-2. **Isotónica** (modelo auxiliar ≤2021, ajuste en 2022) → probabilidad calibrada:
-   Brier 0.0118→0.0065, reliability casi perfecta en 8/10 bins.
-3. **Agregación regional Stage 2** (res7): λ_r = Σ p_cal por región →
-   GLM Poisson jerárquico `log μ = α + β·log(1+λ_r) + MEM·γ` (80 eigenvectores de
-   Moran sobre la adjacency hexagonal; α elegido por CV 2023 H1→H2) →
-   P(≥1 fuego en la región ese día) y λ Galicia = Σμ.
-4. **Niveles**: celdas por percentil vs temporada de train; regiones por
-   riesgo ×N (vs base rate 0.028% región-día).
+1. **LGBM** (600 trees, lr 0.05, 31 leaves, `scale_pos_weight` ≈ 39) over the
+   sampled rows → raw `P(ignition ≥10 ha | cell, day)`.
+2. **Isotonic regression** (auxiliary model ≤2021, fitted on 2022) → calibrated
+   probability: Brier 0.0118→0.0065, near-perfect reliability in 8/10 bins.
+3. **Regional aggregation Stage 2** (res7): λ_r = Σ p_cal per region →
+   hierarchical Poisson GLM `log μ = α + β·log(1+λ_r) + MEM·γ` (80 Moran
+   eigenvectors of the hex adjacency graph; α selected by CV within 2023) →
+   P(≥1 fire in the region that day) and λ Galicia = Σμ.
+4. **Risk levels**: cells by within-day percentile (FWI-gated palette);
+   regions by ×N risk ratio (vs the 0.028% region-day base rate).
 
-## 6. Forecast D-1 (régimen operativo)
+## 6. Day-ahead forecast (operational regime)
 
-- Sustitución de la meteo del día D por el forecast emitido D-1 (Historical
-  Forecast API de Open-Meteo; corrección de sesgo NGR-lite por estación ajustada
-  con 2023: RMSE del FWI forecast 3.03→2.37)
-- Los índices lentos (SPEI, anomalías) permanecen en modo observación
-- Coste medido: −1pp ROC-AUC agregado, recall operativo @K dentro del ruido
-  → el sistema predice de mañana con datos de hoy (sin leakage)
+- The day-D weather is replaced by the forecast issued on D-1 (Open-Meteo
+  Historical Forecast API; per-station NGR-lite bias correction fitted on
+  2023 — forecast FWI RMSE 3.03→2.37)
+- Slow indices (SPEI, code anomalies) remain in observation mode
+- Measured cost: −1pp aggregate ROC-AUC, operational recall@K within noise
+  → the system predicts tomorrow with today's data (no leakage)
 
-## 7. Evaluación operativa (full-grid)
+## 7. Operational evaluation (full grid)
 
-82 días de test con ≥1 fuego ≥10 ha: se construyen TODAS las celdas cada día y
-se marca el K% del territorio con mayor riesgo (top recall medio diario):
-top-1% → 3-5% · top-5% → 13-19% · **top-10% → 29.5-31.2%** de los 137 fuegos.
-A nivel región: AUC 0.755, rec@10% regiones-día 39.4% (Stage 2).
+82 test days with ≥1 fire ≥10 ha: ALL 245k cells are built each day and the
+top K% of the territory is flagged (mean daily recall):
+top-1% → 3-5% · top-5% → 13-19% · **top-10% → 29.5-31.2%** of the 137 fires.
+At region level: AUC 0.755, recall@10% region-days 39.4% (Stage 2).

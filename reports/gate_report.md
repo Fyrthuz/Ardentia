@@ -1,8 +1,8 @@
-# Informe del Gate Fase 2 — WildfireRisk-ES (Galicia, MVP)
+# Phase-2 Gate Report — WildfireRisk-ES (Galicia, MVP)
 
-> **Histórico (ciclo 2026-10-29).** Escenario de arranque del proyecto; el
-> pipeline actual y los experimentos del ciclo de mejora están en
-> [FULLGRID_REGIONAL.md](FULLGRID_REGIONAL.md) y [docs/EXPERIMENTS.md](../docs/EXPERIMENTS.md).
+> **Historical (2026-10-29 cycle), written in Spanish.** Starting scenario of
+> the project; the current pipeline and the improvement cycle are documented in
+> [FULLGRID_REGIONAL.md](FULLGRID_REGIONAL.md) and [docs/EXPERIMENTS.md](../docs/EXPERIMENTS.md).
 
 **Fecha:** 2026-10-29 · **Reproducible:** `src/ardintra/models/*` (seeds 42, splits fijos, test 2023-24 jamás tocado en búsquedas)
 

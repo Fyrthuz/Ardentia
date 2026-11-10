@@ -1,75 +1,85 @@
-# Modelo de datos y organización del lake
+# Data model and lake organization
 
-Todo el lake vive en `data/` (excluido de git salvo los `manifest.json` y `data/catalog/`).
-Principio: **raw inmutable · interim derivable (borrable) · processed reconstructible**.
+The whole lake lives in `data/` (excluded from git except `manifest.json`
+files and `data/catalog/`). Principle: **raw immutable · interim derivable
+(safe to delete) · processed reconstructible**.
 
 ```
 data/
-├── raw/                                # EXACTAMENTE tal cual se descargó
-│   ├── egif/manual/2026-10-29/         # Xml_*.zip y Xlsx_*.zip del Buscador EGIF (descarga manual — no hay API)
-│   ├── effis/year={2017..2025}/perimeters.parquet   # WFS per-token (descarga programática)
-│   ├── dem_glo30/{lat}_{lon}.tif       # 14 tiles de 1° (Copernicus, AWS open data sin auth)
-│   ├── osm/galicia-2026-10-28.osm.pbf  # Geofabrik snapshot denominado con fecha
-│   ├── mfe25/mfe_galicia.rar           # ZIP en realidad (ed. Dic2021) + unpacked/
-│   ├── mdt25/manual/*.tif              # 2 hojas (respaldo; la base del MVP es GLO-30)
-│   ├── s2/s2_summer_{year}.tif         # NDMI/NDVI/NBR @100m (STAC local AWS, mosaico 10 tiles)
+├── raw/                                # EXACTLY as downloaded
+│   ├── egif/manual/2026-10-29/         # Xml_*.zip and Xlsx_*.zip from the EGIF portal (manual download — no API)
+│   ├── effis/year={2017..2025}/perimeters.parquet   # WFS per-year (programmatic)
+│   ├── dem_glo30/{lat}_{lon}.tif       # 14 tiles of 1° (Copernicus, AWS open data, no auth)
+│   ├── osm/galicia-2026-10-28.osm.pbf  # Geofabrik snapshot named by date
+│   ├── mfe25/mfe_galicia.rar           # actually a ZIP (Dec 2021 edition) + unpacked/
+│   ├── mdt25/manual/*.tif              # 2 sheets (backup; the MVP base is GLO-30)
+│   ├── s2/s2_summer_{year}.tif         # NDMI/NDVI/NBR @100m (STAC on AWS, 10-tile mosaic)
 │   ├── aemet/
-│   │   ├── stations.parquet            # inventario 58 estaciones Galicia (coords decimales)
-│   │   ├── obs_hourly/date={día}/obs.parquet      # cron horario de operación (paso 2)
-│   │   └── missing_backfill/estacion={idema}.parquet  # backfill paced AEMET de las 19 que OpenMeteo no bajó
+│   │   ├── stations.parquet            # inventory of 58 Galician stations (decimal coords)
+│   │   ├── obs_hourly/date={day}/obs.parquet      # hourly crontab of operation (step 2)
+│   │   └── missing_backfill/estacion={idema}.parquet  # paced AEMET backfill for the 19 stations OpenMeteo missed
 │   ├── openmeteo/
-│   │   ├── per_station/estacion={idema}.parquet    # checkpoint idempotente backfill
-│   │   └── daily_2017_today.parquet    # serie consolidada 2017→hoy (tmax/tmin/prec/wind/RH)
-│   └── era5land/{var}_{year}.nc        # netCDF (SWC l1/l2, t2m, td2m → VPD) 32/32 completos
-├── interim/                            # derivados reconstructibles
+│   │   ├── per_station/estacion={idema}.parquet    # idempotent backfill checkpoint
+│   │   ├── daily_2017_today.parquet    # consolidated series 2017→today (tmax/tmin/prec/wind/RH)
+│   │   └── forecast_daily.parquet      # day-D forecast issued D-1 (operational regime)
+│   └── era5land/{var}_{year}.nc        # netCDF (SWC l1/l2, t2m, td2m → VPD) 32/32 complete
+├── interim/                            # reconstructible derivatives
 │   ├── egif/parts_normalized.parquet + qa_egif.json
 │   ├── dem/{dem,slope,aspect}_galicia.tif
-│   ├── osm/roads_driveable.parquet     # 482.881 vías con clase normalizada
+│   ├── osm/roads_driveable.parquet     # 482,881 road segments with normalized class
 │   └── mfe25/fuel_modcom_30m.tif
 ├── processed/
-│   ├── h3_cells/res9_static.parquet    # TABLA MAESTRA ESTÁTICA res9 (245.172 celdas)
-│   ├── h3_cells/res8_static.parquet    # aggregada a res8 (38.013 celdas)
-│   ├── features/v1/dataset.parquet         # dataset entrenamiento res9
-│   ├── features/v1_res8/dataset.parquet    # dataset entrenamiento res8
-│   └── labels/v1/ignitions.parquet     # etiquetas
+│   ├── h3_cells/res9_static.parquet    # res9 MASTER STATIC TABLE (245,172 cells)
+│   ├── h3_cells/res8_static.parquet    # aggregated to res8 (38,013 cells)
+│   ├── features/v1/dataset.parquet         # res9 training dataset
+│   ├── features/v1_res8/dataset.parquet    # res8 training dataset
+│   └── labels/v1/ignitions.parquet     # labels
 └── catalog/availability_matrix.md
 ```
 
-## Convenciones generales
+## General conventions
 
-- CRS: WGS84/4326 para almacenar; ETRS89/UTM29 (EPSG:25829) para distancias métricas.
-- Resoluciones H3 probadas: **res9** (~105 m, 245k celdas) y **res8** (~740 m, 38k celdas).
-- `manifest.json` por fuente con sha256 y cobertura; versionado en git aunque los datos no.
+- CRS: WGS84/4326 for storage; ETRS89/UTM29 (EPSG:25829) for metric distances.
+- H3 resolutions tested: **res9** (~105 m, 245k cells) and **res8** (~740 m, 38k cells).
+- `manifest.json` per source with sha256 and coverage; versioned in git even
+  though the data itself is not.
 
-## Bloques de features del modelo
+## Model feature blocks
 
-### Estáticas (por celda, de `res{9,8}_static.parquet`)
-| Feature | Descripción | Fuente |
+### Statics (per cell, from `res{9,8}_static.parquet`)
+| Feature | Description | Source |
 |---|---|---|
-| `forest_frac` | fracción forestal de la celda (muestreo 60m; en res8 media de las hijas) | MFE25 |
-| `fuel_model` | modelo de combustible Rothermel mayoritario (1–13) | MFE25 `n_MODCOM` |
-| `elev_m`, `slope_deg` | cota y pendiente | Copernicus GLO-30 |
-| `aspect_sin`, `aspect_cos` | orientación descompuesta (circular → 2 componentes) | GLO-30 |
-| `dist_to_road`, `dist_to_road_log` | distancia a la vía más cercana (m y log1p) | OSM |
-| `road_class` | clase de esa vía (autovia…pista_forestal/camino_rural) | OSM |
-| `road_density_1km`, `road_density_log` | km de vía por km² en buffer 1 km (y log1p) | OSM |
-| `road_fuel_interface` | binaria: la vía más cercana tiene combustible denso en arcén | MFE25 ∩ OSM |
+| `forest_frac` | forest fraction of the cell (60 m sampling; at res8 the mean of children) | MFE25 |
+| `fuel_model` | majority Rothermel fuel model (1–13) | MFE25 `n_MODCOM` |
+| `elev_m`, `slope_deg` | elevation and slope | Copernicus GLO-30 |
+| `aspect_sin`, `aspect_cos` | aspect decomposed (circular → 2 components) | GLO-30 |
+| `dist_to_road`, `dist_to_road_log` | distance to nearest road (m and log1p) | OSM |
+| `road_class` | class of that road (autovia…pista_forestal/camino_rural) | OSM |
+| `road_density_1km`, `road_density_log` | km of road per km² in a 1 km buffer (and log1p) | OSM |
+| `road_fuel_interface` | binary: nearest road has dense fuel on its shoulder | MFE25 ∩ OSM |
 
-### Dinámicas (por celda-día, en `dataset.parquet`)
-| Grupo | Features | Fuente |
+### Dynamics (per cell-day, in `dataset.parquet`)
+| Group | Features | Source |
 |---|---|---|
-| Met diaria (IDW 3 estaciones más cercanas) | `tmax_c, rh_mean, wind_max_kmh, prec_mm` | AEMET 58 est (openmeteo + backfill paced) |
-| FWI (port cffdrs verbatim) | `fwi, ffmc, dmc, dc, isi, bui` | calculado de la met diaria |
-| Tendencias | `ffmc_7d, fwi_7d, fwi_prev` | rolling 7d sobre las series FWI |
-| Sequía | `spei30, spei90` (PET Hargreaves) · `ffmc_anom, dmc_anom, dc_anom` (anomalía vs clima del día calendario) | AEMET/openmeteo raw |
-| Humedad de suelo / VPD | `swc_l1_mean, swc_l2_mean, vpd_max, vpd_mean` (3-horario → diario) | ERA5-Land 32/32 |
-| Satélite (SIN look-ahead) | `ndmi_summer, ndvi_summer, nbr_summer, ndmi_anom` — composite del verano del AÑO ANTERIOR | Sentinel-2 vía STAC local |
-| Recencia (memoria de fuel quemado) | `dias_ultimo_fuego_cercano` (días desde el último fuego <5 km), `dist_ultimo_fuego_m`, `ardio_1km_1an` | EGIF histórico |
-| Calendario antrópico | `es_finde`, `dens_x_weekend` (interacción viaria×finde) | fecha |
+| Daily weather (IDW over 3 nearest stations) | `tmax_c, rh_mean, wind_max_kmh, prec_mm` | AEMET 58 stations (openmeteo + paced backfill) |
+| FWI (verbatim cffdrs port) | `fwi, ffmc, dmc, dc, isi, bui` | computed from daily weather |
+| Trends | `ffmc_7d, fwi_7d, fwi_prev` | 7d rolling over FWI series |
+| Drought | `spei30, spei90` (Hargreaves PET) · `ffmc_anom, dmc_anom, dc_anom` (anomaly vs calendar-day climatology) | AEMET/openmeteo raw |
+| Soil moisture / VPD | `swc_l1_mean, swc_l2_mean, vpd_max, vpd_mean` (3-hourly → daily) | ERA5-Land 32/32 |
+| Satellite (NO look-ahead) | `ndmi_summer, ndvi_summer, nbr_summer, ndmi_anom` — composite of the PREVIOUS year's summer | Sentinel-2 via public STAC |
+| Fire recency (burned-fuel memory) | `dias_ultimo_fuego_cercano` (days since last fire <5 km), `dist_ultimo_fuego_m`, `ardio_1km_1an` | EGIF historical |
+| Human calendar | `es_finde` (weekend), `dens_x_weekend` (road×weekend interaction) | date |
+| Ignition cause (analytical) | `cause`, `es_humana` (76%), `es_rayo` (3%) | EGIF `idcausa` |
 
-## Etiquetas
+## Labels
 
-- **Cualquier ignición ≥0.1 ha** (los micro-fogatas <0.1 ha = 40% de los partes pero el 0.09% del área quemada → filtrados como ruido de etiqueta)
-- **≥10 ha** ("fuego importante", el target principal `big10`; 1.496 en train 2017-22 · 137 en test 2023-24)
-- Negativos deterministas (seed 42): 150/día random en temporada + 3/día en invierno (ratio global ~38:1) + **hard negatives** (NEAR-SPACE: anillo 1-3 km de fuegos del mismo día; NEAR-TIME: la celda 8-21 días antes, sin look-ahead) con exclusión de propagación (fuegos <1 km/±7 d).
-  Los muestreos alternativos (estratificación por combustible, high-danger-site) quedaron refutados — ver [EXPERIMENTS.md](EXPERIMENTS.md).
+- **Any ignition ≥0.1 ha** (micro-fires <0.1 ha = 40% of reports but 0.09% of
+  burned area → filtered out as label noise)
+- **≥10 ha** ("major fire", the main target `big10`; 1,496 in train 2017-22 ·
+  137 in test 2023-24)
+- Deterministic negatives (seed 42): 150/day random in fire season + 3/day in
+  winter (global ratio ≈ 38:1) + **hard negatives** (NEAR-SPACE: 1-3 km ring of
+  same-day fires; NEAR-TIME: the cell 8-21 days earlier, no look-ahead), with
+  propagation exclusion (fires <1 km/±7 d).
+  Alternative sampling schemes (fuel stratification, high-danger sites) were
+  refuted — see [EXPERIMENTS.md](EXPERIMENTS.md).

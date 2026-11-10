@@ -1,56 +1,62 @@
-# Fuentes de datos — acceso, credenciales, límites y quirks
+# Data sources — access, credentials, limits and quirks
 
-> Checklist actualizada al 2026-10-29 en `data/catalog/availability_matrix.md`.
+> Checklist as of 2026-10-29 in `data/catalog/availability_matrix.md`.
 
-## Resumen de acceso
+## Access summary
 
-| Fuente | Auth | Límite crítico | Uso en el sistema |
+| Source | Auth | Critical limit | Role in the system |
 |---|---|---|---|
-| EGIF (Buscador MITECO) | manual (sin API pública) | export por tramos; XML→partes | etiquetas con causa (idcausa/motivación/causante), fecha `deteccion`, coords |
-| EFFIS RDII WFS | **ninguna** | WFS 1.0.0 (1.1.0 invierte lon/lat); latencias de 2 min por año | perímetros ≥30 ha 2017–2025 |
-| AEMET OpenData | API key (caduca 90 d) | **rate limit agresivo** (~15k req congelan la cuenta; ver nota) | tiempo real: obs horaria /observacion/convencional/todas |
-| Open-Meteo Archive | **ninguna** | 429 por minuto y **por HORARIO** con payloads grandes | backfill histórico diario (58 estaciones; 1 req = 3.589 días × 5 var) |
-| Copernicus CDS (ERA5-Land) | cuenta + **aceptación expresa de licencia del dataset** en el portal | cola de ejecución | SWC l1/l2, T2m, Td2m (VPD) 2017–2024 |
-| **STAC earth-search + AWS sentinel-cogs** | **ninguna** (open data) | COGs con overviews; lecturas @100m con GDAL cache capped | Sentinel-2 L2A: NDMI/NDVI/NBR composites verano 2017–2024 (10 tiles MGRS; 30TTM en zone 30 → reproyectar) |
-| ~~GEE / AlphaEarth~~ | ~~OAuth~~ | API key `AIza…` **no soportada** por EE (401 CREDENTIALS_MISSING) | **CANCELADO** (decisión 2026-10-29); módulo `gee_export.py` parked |
-| ~~Prithvi / Clay local~~ | pesos HF | GPU RTX 5080 disponible pero no necesario | **CANCELADO** — la ablation F2 no usa embeddings |
-| OSM Geofabrik | ninguna | — | red viaria (482.881 segmentos Galicia incl. 114k pistas forestales) |
-| MFE25 (MITECO) | descarga manual | ZIP (no rar) | ModeloComb Rothermel 1–13 por polígono, FCC, especies |
-| IGN/CNIG | descarga manual | hojas individuales | MDT25 (respaldo), BCN200 futura comparación viaria |
-| Copernicus GLO-30 | **ninguna** (AWS open data) | — | DEM/pendiente/orientación (base del MVP) |
+| EGIF (MITECO portal) | manual (no public API) | export in batches; XML→reports | labels with cause (idcausa/motivation/cause agent), `deteccion` date, coords |
+| EFFIS RDII WFS | **none** | WFS 1.0.0 (1.1.0 swaps lon/lat); ~2 min latency per year | perimeters ≥30 ha 2017–2025 |
+| AEMET OpenData | API key (expires 90 d) | **aggressive rate limit** (~15k req freeze the account; see note) | real time: hourly obs `/observacion/convencional/todas` |
+| Open-Meteo Archive | **none** | 429 per minute and **per HOUR** with large payloads | daily historical backfill (57 stations; 1 req = 3,589 days × 5 vars) |
+| Open-Meteo Historical Forecast | **none** | archive starts 2022-01 (HRES seamless) | day-D forecast issued D-1 (operational regime) |
+| Copernicus CDS (ERA5-Land) | account + **explicit dataset license acceptance** on the portal | execution queue | SWC l1/l2, T2m, Td2m (VPD) 2017–2024 |
+| **STAC earth-search + AWS sentinel-cogs** | **none** (open data) | COGs with overviews; @100 m reads with capped GDAL cache | Sentinel-2 L2A: NDMI/NDVI/NBR summer composites 2017–2024 (10 MGRS tiles; 30TTM in zone 30 → reproject) |
+| ~~GEE / AlphaEarth~~ | ~~OAuth~~ | `AIza…` API key **unsupported** by EE (401 CREDENTIALS_MISSING) | **CANCELLED** (decision 2026-10-29); `gee_export.py` module parked |
+| ~~Local Prithvi / Clay~~ | HF weights | RTX 5080 available but unnecessary | **CANCELLED** — the F2 ablation doesn't use embeddings |
+| OSM Geofabrik | none | — | road network (482,881 Galician segments incl. 114k forest tracks) |
+| MFE25 (MITECO) | manual download | ZIP (not rar) | Rothermel ModeloComb 1–13 per polygon, FCC, species |
+| IGN/CNIG | manual download | individual sheets | MDT25 (backup), BCN200 as future road comparison |
+| Copernicus GLO-30 | **none** (AWS open data) | — | DEM/slope/aspect (MVP base) |
 
-## Quirks descubiertos (para no tropezar dos veces)
+## Discovered quirks (so you don't trip twice)
 
-1. **AEMET codificação e bytes mixtos**: el inventario de estaciones se sirve en latin-1
-   (0xD3 = "Ó"). Patrón 2 pasos: el primer JSON devuelve la URL real (`datos`);
-   el cuerpo puede volver **vacío** en tramos sin datos → tratar como vacío, no error.
-2. **AEMET climatologías diarias**: fechas en formato `AAAA-MM-DDTHH:MM:SSUTC`
-   (no vale ISO fecha simple). Datos con decimales por coma (`6,1`).
-   **Límite documentado (FAQ oficial §3.5): 40 conexiones/min por usuario**; el código
-   429 significa "sobrepasa los límites (caudal por minuto)". El backfill usa 2.5 s/req
-   (~24/min) y ante 429 repite el MISMO tramo tras cooldown (no descarta datos).
-   Chunk máximo probado: 31 días (30 con margen). El ACK y el body `datos` a veces
-   llegan mal codificados → decodificar tolerante (latin-1 fallback) y descartar tramo.
-3. **AEMET rate limit**: la API congela tras ~14–15k peticiones en una sesión
-   incl. backfill por 30 días×2 llamadas×58 estaciones ≈ 14k → **usar Open-Meteo
-   para histórico** y AEMET solo para el cron horario del tiempo real.
-4. **Open-Meteo free tier**: 429 "Minutely" esperable; **"Hourly" también existe** —
-   el módulo guarda checkpoint por estación (`per_station/`) y es reanudable.
-5. **EFFIS WFS**: usar `WFS 1.0.0` (ejes lon,lat correctos); filtrar `COUNTRY=ES`
-   y provincia en `{A Coruña, Lugo, Ourense, Pontevedra}` tras pedir por bbox
-   (la bbox arrauga Portugal).
-6. **GLO-30 es EPSG:4326** (grados): la pendiente requiere convertir el gradiente por
-   píxel a metros (`a_deg·111_320·cos(lat)`) — primera versión con la unidad en grados
-   daba pendientes ~90° (ya corregida: p95=28° para Galicia).
-7. **MFE25**: el "rar" oficial es un **ZIP** (verificar `PK` antes de unrar);
-   camada única para toda Galicia, CRS EPSG:25830 → reproyectar al grid GLO-30 4326.
-8. **STAC S2 (earth-search)**: `grid:code` por tile MGRS, `eo:cloud_cover`. Bandas por
-   nombre STAC (`nir`, `nir08`/B8A, `swir16`/B11, `swir22`/B12, `scl`). El COG trae
-   `raster:bands` scale/offset (0.0001 / -0.1) que hay que aplicar ANTES de los
-   normalizedDifference. Máscara SCL: filtrar 3/8/9/10/11. GDAL_CACHEMAX capado a
-   512 MB por proceso de lectura para no reventar la RAM con decimaciones COG.
-9. **EGIF**: `numeroparte` es la clave de negocio; `idpif` para joins internos.
-   La `hora` en `pif_condiciones` a veces vale 2025 → ignorar como hora del parte.
-9. **H3 res9 con un solo tipo de geometría**: para distancias viarias usar el
-   **polígono de la celda** (`h3.cell_to_boundary`), no el centroide — los centroides
-   solos cuelgan a ~50 m del arco y falsean `dist_to_road=9999`.
+1. **AEMET mixed encodings**: the station inventory is served in latin-1
+   (0xD3 = "Ó"). Two-step pattern: the first JSON returns the real URL
+   (`datos`); the body may come back **empty** for stretches with no data →
+   treat as empty, not an error.
+2. **AEMET daily climatologies**: dates in `YYYY-MM-DDTHH:MM:SSUTC` format
+   (plain ISO date doesn't work). Data with decimal commas (`6,1`).
+   **Documented limit (official FAQ §3.5): 40 connections/min per user**; the
+   429 code means "exceeds the per-minute flow limit". The backfill uses
+   2.5 s/req (~24/min) and on 429 retries the SAME stretch after cooldown
+   (never discards data). Maximum tested chunk: 31 days (30 to be safe). The
+   ACK and `datos` body sometimes arrive mis-encoded → decode tolerantly
+   (latin-1 fallback) and discard the stretch.
+3. **AEMET rate limit**: the API freezes after ~14-15k requests in one
+   session (a 30-day×2-call×58-station backfill ≈ 14k) → **use Open-Meteo for
+   history** and AEMET only for the real-time hourly cron.
+4. **Open-Meteo free tier**: "Minutely" 429 is expected; **"Hourly" exists
+   too** — the module keeps per-station checkpoints (`per_station/`) and is
+   resumable.
+5. **EFFIS WFS**: use `WFS 1.0.0` (correct lon,lat axes); filter
+   `COUNTRY=ES` and province in `{A Coruña, Lugo, Ourense, Pontevedra}` after
+   the bbox query (the bbox catches Portugal).
+6. **GLO-30 is EPSG:4326** (degrees): slope requires converting the per-pixel
+   gradient to meters (`a_deg·111_320·cos(lat)`) — a first version with the
+   unit in degrees gave ~90° slopes (fixed: p95=28° for Galicia).
+7. **MFE25**: the official "rar" is a **ZIP** (check `PK` before unrar);
+   single layer for all Galicia, CRS EPSG:25830 → reproject to the GLO-30
+   4326 grid.
+8. **STAC S2 (earth-search)**: `grid:code` per MGRS tile, `eo:cloud_cover`.
+   Bands by STAC name (`nir`, `nir08`/B8A, `swir16`/B11, `swir22`/B12, `scl`).
+   The COG carries `raster:bands` scale/offset (0.0001 / -0.1) that must be
+   applied BEFORE the normalized differences. SCL mask: filter 3/8/9/10/11.
+   GDAL_CACHEMAX capped at 512 MB per reading process to avoid blowing RAM
+   with COG decimations.
+9. **EGIF**: `numeroparte` is the business key; `idpif` for internal joins.
+   The `hora` in `pif_condiciones` sometimes reads 2025 → ignore as report time.
+10. **H3 res9 with a single geometry type**: for road distances use the
+    **cell polygon** (`h3.cell_to_boundary`), not the centroid — bare
+    centroids sit ~50 m off the arc and fake `dist_to_road=9999`.

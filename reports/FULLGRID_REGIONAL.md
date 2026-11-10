@@ -1,337 +1,358 @@
-# Evaluación operativa full-grid y forecast regional probabilístico
+# Full-grid operational evaluation and probabilistic regional forecast
 
-**Ciclo 2026-10-30/31** — el doc maestro del ciclo de experimentación adoptado
-por el [README principal](../README.md) y [docs/EXPERIMENTS.md](../docs/EXPERIMENTS.md).
-Los reportes del ciclo anterior (2026-10-29, gate Fase 2) están en `archive/`.
+**Cycle 2026-10-30/31** — the master document of the experimentation cycle
+adopted by the [main README](../README.md) and
+[docs/EXPERIMENTS.md](../docs/EXPERIMENTS.md). Reports from the previous
+cycle (2026-10-29, Phase-2 gate) are in `archive/` (Spanish).
 
-**Fecha:** 2026-10-30 · Modelo: LGBM (600 árboles, lr 0.05, 48 features) · Target: ignición ≥10 ha
+**Date:** 2026-10-30 · Model: LGBM (600 trees, lr 0.05, 48 features) · Target: ignition ≥10 ha
 
-## 1. Evaluación operativa full-grid (82 días de test con fuegos ≥10 ha, 137 fuegos)
+## 1. Full-grid operational evaluation (82 test days with ≥10 ha fires, 137 fires)
 
-Por primera vez se predice **las 245.172 celdas** cada día de test (no la muestra de 15),
-emulando el uso operativo real: cada mañana se marca el K% de Galicia con mayor riesgo.
+For the first time **all 245,172 cells** are predicted every test day (not
+the 15-cell sample), emulating real operational use: every morning the top-K%
+of Galicia by risk is flagged.
 
-| Esfuerzo diario | Recall medio | Recall mediano |
+| Daily effort | Mean recall | Median recall |
 |---|---|---|
-| top 1% (2.451 celdas) | 3,0% | 0% |
-| top 5% (12.258 celdas) | 14,2% | 0% |
-| top 10% (24.517 celdas) | **31,2%** | 0% |
+| top 1% (2,451 cells) | 3.0% | 0% |
+| top 5% (12,258 cells) | 14.2% | 0% |
+| top 10% (24,517 cells) | **31.2%** | 0% |
 
-** Lectura honesta: ** marcando a diario el 10% del territorio se captura ~31% de los fuegos
-grandes (media diaria; la mediana es 0 porque en la mayoría de días ningún fuego cae en el
-top). Es un problema muy difícil: 137 fuegos repartidos en 82 días sobre 245k celdas.
+**Honest reading:** flagging 10% of the territory every day captures ~31% of
+the major fires (daily mean; the median is 0 because on most days no fire
+falls in the top). It is a very hard problem: 137 fires spread over 82 days
+on 245k cells.
 
-## 2. Calibración de probabilidades (isotónica)
+## 2. Probability calibration (isotonic)
 
-Modelo auxiliar entrenado ≤2021, isotónica ajustada sobre 2022.
+Auxiliary model trained ≤2021, isotonic fitted on 2022.
 
 - **Brier: 0.0118 → 0.0065** (−45%)
-- Reliability casi perfecta en los 8 bins superiores (ej.: p calibrada 3,16% vs real 3,08%
-  en el decil superior; 0,87% vs 0,84% en el bin 0.0043).
+- Near-perfect reliability on the 8 top bins (e.g.: calibrated p 3.16% vs
+  real 3.08% on the top decile; 0.87% vs 0.84% at bin 0.0043).
 
-Con esto la frase *"esta celda tiene un 3% de probabilidad de fuego ≥10 ha hoy"* es honesta.
+With this the phrase *"this cell has a 3% probability of a ≥10 ha fire
+today"* is honest.
 
-## 3. Forecast regional (agregación Poisson + recalibración)
+## 3. Regional forecast (Poisson aggregation + recalibration)
 
-Agregación por hexágonos padre res7 (5,2 km): λ = Σp_i → P(≥1) = 1−e^(−λ).
+Aggregation over res7 parent hexagons (5.2 km): λ = Σp_i → P(≥1) = 1−e^(−λ).
 
-**Problema detectado:** la P(≥1) cruda está masivamente sobreenconfiada (regiones con
-P(≥1) 50-100% tuvieron fuego el 0,05% de las veces). Causas: (a) la isotónica de celda se
-ajustó con la muestra de 15 celdas/día y el full-grid extrapola fuera de su rango (clipping
-al máximo), (b) las celdas comparten el mismo tiempo → correlación perfecta que viola la
-independencia del Poisson.
+**Detected problem:** the raw P(≥1) is massively overconfident (regions with
+predicted P(≥1) 50-100% had a fire 0.05% of the time). Causes: (a) the cell
+isotonic was fitted with the 15-cells/day sample and the full grid
+extrapolates outside its range (clipping to the max), (b) cells share the
+same weather → perfect correlation that violates Poisson independence.
 
-**Solución:** segunda isotónica a nivel región, ajustada con 2023 y evaluada en 2024
-(split temporal honesto, 154.170 regiones-día, 33 con fuego):
+**Solution:** a second isotonic at region level, fitted on 2023 and evaluated
+on 2024 (honest temporal split, 154,170 region-days, 33 with fire):
 
-| Decil de p_reg | p mediana | frecuencia real |
+| Decile of p_reg | median p | real frequency |
 |---|---|---|
-| 1.º | 0,0000 | 0,0000 |
-| 5.º | 0,0002 | 0,0001 |
-| 8.º | 0,0004 | 0,0004 |
-| 10.º (top) | 0,0005 | **0,0008** |
+| 1st | 0.0000 | 0.0000 |
+| 5th | 0.0002 | 0.0001 |
+| 8th | 0.0004 | 0.0004 |
+| 10th (top) | 0.0005 | **0.0008** |
 
-- **AUC regional: 0,728** (predecir ≥1 fuego ≥10 ha en la región ese día)
-- Top 10% de regiones/día → 27,3% de los fuegos-region · top 20% → 42,4%
-- Tendencia monótona en los deciles superiores; calibración absoluta comprimida
-  (eventos raros: base rate 0,02-0,03% por región-día)
+- **Regional AUC: 0.728** (predicting ≥1 fire ≥10 ha in the region that day)
+- Top 10% region-days → 27.3% of region-fires · top 20% → 42.4%
+- Monotone tendency in the upper deciles; absolute calibration compressed
+  (rare events: base rate 0.02-0.03% per region-day)
 
-## 4. Comunicación del riesgo
+## 4. Risk communication
 
-Dado que las probabilidades honestas son diminutas, el producto final comunica:
+Since honest probabilities are tiny, the final product communicates:
 
-- **Nivel de riesgo** por percentiles (verde/amarillo/naranja/rojo) — celdas y regiones
-- **Múltiplo de la base rate** (×N): "esta región hoy tiene 85× el riesgo medio"
-- **Nº esperado de fuegos ≥10 ha en Galicia** (λ recalibrado) en el pie del vídeo
+- **Risk level** by percentiles (green/yellow/orange/red) — cells and regions
+- **Base-rate multiple** (×N): "this region today carries 85× the average risk"
+- **Expected number of ≥10 ha fires in Galicia** (recalibrated λ) in the video footer
 
-Nunca se afirma "va a haber un incendio con total seguridad": proceso estocástico,
-se emite probabilidad calibrada + nivel ordinal (analogía AEMET).
+We never claim "there will definitely be a fire": it is a stochastic process,
+we emit calibrated probability + an ordinal level (AEMET analogy).
 
-## 5. Dependencia espacial y garantías (frailty NB + conformal)
+## 5. Spatial dependence and guarantees (NB frailty + conformal)
 
-`src/ardintra/models/joint_calibration.py` — dos experimentos sobre la agregación regional:
+`src/ardintra/models/joint_calibration.py` — two experiments on the regional
+aggregation:
 
-**a) Frailty gamma (≈ copula de factor común):** los fuegos de un día comparten el tiempo
-(mismo FWI) → sobredispersión respecto al Poisson. Modelo N_d ~ NB(media λ_d, frailty k).
+**a) Gamma frailty (≈ common-factor copula):** fires of the same day share
+the weather (same FWI) → overdispersion relative to Poisson. Model
+N_d ~ NB(mean λ_d, frailty k).
 
-- k ajustado en 2023: **6.4** (sobredispersión real en train: días con 8-9 fuegos)
-- **Fuera de muestra (2024) el Poisson gana**: log-lik −32.9 (Poisson) vs −34.5 (NB)
-- Con 55 días de entrenamiento, el parámetro extra no paga. La independencia Poisson
-  es adecuada a escala Galicia-día; la sobredispersión no es estimable de forma robusta.
+- k fitted on 2023: **6.4** (real overdispersion in train: days with 8-9 fires)
+- **Out-of-sample (2024) Poisson wins**: log-lik −32.9 (Poisson) vs −34.5 (NB)
+- With 55 training days, the extra parameter does not pay off. Poisson
+  independence is adequate at the Galicia-day scale; overdispersion is not
+  robustly estimable.
 
-**b) Split conformal regional (α=0.10, ajuste 2023 → evaluación 2024):**
+**b) Regional split conformal (α=0.10, fitted 2023 → evaluated 2024):**
 
-- Para garantizar cobertura marginal ≥90%, el conjunto conformal necesita marcar el
-  **87.7% del territorio** (media 5.008 regiones/día)
-- Comparación: top-20% fijo por p_reg → 78.8% de cobertura con solo el 20% del territorio
-- **Lectura:** el conformal cuantifica el precio de la garantía — con señal AUC 0.73,
-  una garantía del 90% exige marcar casi todo. Útil como límite honesto del sistema.
+- To guarantee ≥90% marginal coverage the conformal set must flag **87.7% of
+  the territory** (mean 5,008 regions/day)
+- Comparison: fixed top-20% by p_reg → 78.8% coverage with only 20% of the territory
+- **Reading:** conformal quantifies the price of a guarantee — with AUC 0.73
+  signal, a 90% guarantee demands flagging nearly everything. Useful as an
+  honest system ceiling.
 
-**Limitación documentada:** el parquet regional solo contiene los 82 días CON fuegos
-(los 649 días sin fuego ≥10 ha no se evaluaron), por lo que la calibración de P(N≥1)
-incondicionada no es validable sin re-procesar los días sin fuego.
+**Documented limitation:** the regional parquet only contains the 82 days
+WITH fires (the 649 days without ≥10 ha fires were not evaluated), so
+unconditional P(N≥1) calibration cannot be validated without reprocessing
+the no-fire days.
 
-## 6. Vídeo 2-paneles (actualizado)
+## 6. Two-panel video (updated)
 
-`reports/simulacion_2023_2panel.mp4` — panel izquierdo: celdas res9 por percentil de
-p calibrada; panel derecho: regiones res7 por P(≥1) recalibrada con etiquetas ×N en las
-top-3 del día; pie con λ esperado Galicia y fuegos reales (⭐ ≥10 ha, 🔵 <10 ha).
+`reports/simulacion_2023_2panel.mp4` — left: res9 cells by calibrated-p
+percentile; right: res7 regions by recalibrated P(≥1) with ×N labels on the
+day's top-3; footer with expected Galicia λ and real fires (⭐ ≥10 ha, 🔵 <10 ha).
 
-## Artefactos
+## Artifacts
 
-- `reports/fullgrid_eval.json` — recall operativo por día
-- `reports/fullgrid_regional.parquet` — λ, P(≥1) cruda y fuegos observados por región-día
-- `reports/fullgrid_regional_calibrado.parquet` — P(≥1) recalibrada (eval 2024)
-- `reports/regional_reliability_2024.csv` — reliability regional
-- `reports/calibration.json`, `reports/reliability_diagram.csv` — calibración de celda
-- `reports/joint_calibration.json` — frailty NB + conformal regional
+- `reports/fullgrid_eval.json` — operational recall per day
+- `reports/fullgrid_regional.parquet` — λ, raw P(≥1) and observed fires per region-day
+- `reports/fullgrid_regional_calibrado.parquet` — recalibrated P(≥1) (2024 eval)
+- `reports/regional_reliability_2024.csv` — regional reliability
+- `reports/calibration.json`, `reports/reliability_diagram.csv` — cell calibration
+- `reports/joint_calibration.json` — NB frailty + regional conformal
 
-## 7. Fase 1 — Experimentos de mejora (2026-10-31)
+## 7. Phase 1 — improvement experiments (2026-10-31)
 
-### 7.1 Muestreo estratificado de negativos — REFUTADO
+### 7.1 Stratified negative sampling — REFUTED
 
-Hipótesis (Pourmohamad 2025): hard negatives (near-space doblado + sitios históricos
-de ignición en días FWI≥p90) corregirían la sobreenconfianza full-grid.
+Hypothesis (Pourmohamad 2025): hard negatives (doubled near-space + historical
+ignition sites on FWI≥p90 days) would fix the full-grid overconfidence.
 
-| Config | AUC | AP | recall@10% operativo |
+| Config | AUC | AP | operational recall@10% |
 |---|---|---|---|
-| V1 muestreo original | **0.897** | **0.036** | **31.2%** |
-| V2 estratificado | 0.881 | 0.031 | 27.2% |
-| V2 sin features densidad | 0.878 | 0.034 | — |
+| V1 original sampling | **0.897** | **0.036** | **31.2%** |
+| V2 stratified | 0.881 | 0.031 | 27.2% |
+| V2 without density features | 0.878 | 0.034 | — |
 
-- El muestreo estratificado EMPEORA el modelo (más conservativo, −1.9pp AUC)
-- La sobreenconfianza regional persiste → es estructural (transferencia de la
-  calibración muestra→full-grid + suma de celdas correlacionadas), no de muestreo
-- La 2ª isotónica regional sigue siendo el fix pragmático correcto
-- **Decisión:** revertido a v1; tiers nuevos detrás de `ARDENTIA_HARDNEG=1`
-- Features de densidad por causa: shift train/test (0→1.97), sin ganancia — excluidas
+- Stratified sampling makes the model WORSE (more conservative, −1.9pp AUC)
+- Regional overconfidence persists → it is structural (sample→full-grid
+  calibration transfer + correlated cell sums), not a sampling problem
+- The 2nd regional isotonic remains the correct pragmatic fix
+- **Decision:** reverted to v1; new tiers behind `ARDENTIA_HARDNEG=1`
+- Cause-density features: train/test shift (0→1.97), no gain — excluded
 
-### 7.2 Causa de ignición — propagada y disponible
+### 7.2 Ignition cause — propagated and available
 
-- EGIF `idcausa` propagada al dataset: 6.464 positivos (92%) — 76% humanas (3xx+4xx),
-  3% rayo (1xx), resto desconocida/reproducción
-- Columnas `cause`, `es_humana`, `es_rayo` disponibles para análisis y modelos por causa
-- Pendiente (Fase 2): modelo separado humano/natural (Gelabert 2025, Gómez-Pazo 2025)
+- EGIF `idcausa` propagated to the dataset: 6,464 positives (92%) — 76%
+  human (3xx+4xx), 3% lightning (1xx), rest unknown/re-ignition
+- Columns `cause`, `es_humana`, `es_rayo` available for analysis and
+  per-cause models
 
-### 7.3 Forecast D-1 — VIABLE con coste pequeño y cuantificado
+### 7.3 D-1 forecast — VIABLE with a small quantified cost
 
-**NOTA DE CORRECCIÓN:** la primera versión de este experimento usó datos de
-GFS Previous Runs (cobertura solo desde 2024-01) que dejó las features met de
-2023 a cero → resultados inválidos, retractados. La versión definitiva usa la
-Historical Forecast API (HRES seamless, cobertura 2023 completa, lead ~24h)
-con corrección de sesgo NGR-lite por estación (fit 2023, verificado en 2024:
-RMSE del FWI forecast 3.03→2.37, −22%).
+**CORRECTION NOTE:** the first version of this experiment used GFS Previous
+Runs data (coverage only from 2024-01), which left the 2023 weather features
+at zero → invalid results, retracted. The definitive version uses the
+Historical Forecast API (HRES seamless, full 2023 coverage, ~24h lead) with
+per-station NGR-lite bias correction (fitted 2023, verified on 2024: forecast
+FWI RMSE 3.03→2.37, −22%).
 
-| Métrica | obs (V1) | forecast D-1 corregido (V3b) | dif |
+| Metric | obs (V1) | NGR-corrected D-1 forecast (V3b) | diff |
 |---|---|---|---|
-| AUC agregado (muestra) | 0.897 | 0.887 | −1.0pp |
-| recall top5 operativo | 14.2% | 13.2% | −0.3 SE (ruido) |
-| recall top10 operativo | 31.2% | 29.5% | −0.4 SE (ruido) |
+| Aggregate AUC (sample) | 0.897 | 0.887 | −1.0pp |
+| operational top-5 recall | 14.2% | 13.2% | −0.3 SE (noise) |
+| operational top-10 recall | 31.2% | 29.5% | −0.4 SE (noise) |
 
-- **Conclusión:** el sistema puede operar con forecast D-1: el coste es −1pp
-  de AUC agregado en muestra y no detectable en el recall operativo @K
-  → elimina el leakage operativo (la meteo del día D no está disponible de mañana)
-- Artefactos: `src/ardintra/features/build_met_fc.py` (NGR-lite),
+- **Conclusion:** the system can operate on D-1 forecasts: the cost is −1pp
+  aggregate AUC in-sample and undetectable in operational @K recall
+  → removes the operational leakage (day-D weather is not available in the morning)
+- Artifacts: `src/ardintra/features/build_met_fc.py` (NGR-lite),
   `data/raw/openmeteo/met_fc.parquet`, `reports/fullgrid_eval_v3.json`,
-  flag `ARDENTIA_MET_FC=1` en fullgrid_eval
+  flag `ARDENTIA_MET_FC=1` in fullgrid_eval
 
-## 8. Stage 2 — Modelo jerárquico espacial (GLM + Moran Eigenvector Maps)
+## 8. Stage 2 — hierarchical spatial model (GLM + Moran Eigenvector Maps)
 
-Réplica python del enfoque "XGBoost meets INLA" (arXiv 2508.09896), sin R:
+Pure-python replica of the "XGBoost meets INLA" approach (arXiv 2508.09896), no R:
 
     log μ_{r,d} = α + β·log(1+λ_raw_{r,d}) + Σ_k γ_k·MEM_k(r)
 
-- MEM: eigenvectores de Moran de la adjacency hexagonal res7 (5.710 regiones,
-  base discreta que aproxima el campo Matérn del SPDE; Griffith 1996)
-- β recalibra la intensidad Stage 1 (ajustado: 0.61 — corrige la sobreenconfianza)
-- u_r = MEM·γ: patrón espacial residual persistente (clustering no explicado
-  por features dinámicas)
-- Ajuste: PoissonRegressor (ridge), alpha=1e-6 **seleccionado por CV dentro de
-  2023 (fit Ene-Jun → val Jul-Dic)** — sin tocar 2024
+- MEM: Moran eigenvectors of the res7 hex adjacency (5,710 regions, a discrete
+  basis approximating the SPDE Matérn field; Griffith 1996)
+- β recalibrates the Stage-1 intensity (fitted: 0.61 — corrects the overconfidence)
+- u_r = MEM·γ: persistent residual spatial pattern (clustering not explained
+  by dynamic features)
+- Fit: PoissonRegressor (ridge), alpha=1e-6 **selected by CV within 2023
+  (fit Jan-Jun → val Jul-Dec)** — 2024 never touched
 
-### Validación 2024 (split temporal, 154.170 regiones-día, 33 con fuego)
+### 2024 validation (temporal split, 154,170 region-days, 33 with fire)
 
-| Modelo | AUC | rec@10% región-día |
+| Model | AUC | recall@10% region-days |
 |---|---|---|
-| λ cruda Stage 1 | 0.719 | 30.3% |
-| Isotónica regional (producción) | 0.693 | 27.3% |
+| Raw Stage-1 λ | 0.719 | 30.3% |
+| Regional isotonic (production) | 0.693 | 27.3% |
 | **Stage 2 (GLM+MEM)** | **0.755** | **39.4%** |
 
-Reliability por deciles: monótona y bien calibrada (top decile: pred 0.00052 vs
-real 0.00071 — subconfianza 1.4×, aceptable para eventos raros).
+Reliability by deciles: monotone and well calibrated (top decile: predicted
+0.00052 vs real 0.00071 — 1.4× underconfidence, acceptable for rare events).
 
-Sensibilidad a alpha: 1e-4 → 0.720 (espacial colapsado), 1e-6 → 0.755 (óptimo,
-elegido por CV), 1e-8 → 0.717 (sobreajuste). El CV interno de 2023 selecciona
-1e-6 de forma independiente → la ganancia no es artefacto de selección.
+Alpha sensitivity: 1e-4 → 0.720 (spatial collapsed), 1e-6 → 0.755 (optimal,
+selected by CV), 1e-8 → 0.717 (overfit). The 2023 internal CV selects 1e-6
+independently → the gain is not a selection artifact.
 
-**Conclusión:** Stage 2 mejora el forecast regional de forma genuina (+3.6pp AUC,
-+12pp rec@10% sobre el baseline de producción) con calibración honesta. La
-recalibración isotónica de producción queda sustituida por el GLM+MEM.
+**Conclusion:** Stage 2 genuinely improves the regional forecast (+3.6pp AUC,
++12pp recall@10% over the production baseline) with honest calibration. The
+production isotonic recalibration is replaced by the GLM+MEM.
 
-Artefactos: `src/ardintra/models/stage2_lgcp.py`, `reports/stage2_lgcp.json`,
+Artifacts: `src/ardintra/models/stage2_lgcp.py`, `reports/stage2_lgcp.json`,
 `reports/stage2_reliability.csv`, `reports/stage2_predictions_2024.parquet`.
 
-## 9. Stage 2 integrado al vídeo
+## 9. Stage 2 integrated into the video
 
-`reports/simulacion_2023_2panel.mp4` regenerado: el panel derecho usa μ del
-GLM+MEM (`reports/stage2_model.npz`) — P(≥1) regional honesta, etiquetas ×N
-(riesgo vs base rate 0.028%) y λ diario = Σμ (Nº esperado de fuegos). Ejemplo
-2023-10-12: ×6-×7 en las top-3 (antes ×38 con el modelo sobreenconfiado).
+`reports/simulacion_2023_2panel.mp4` regenerated: the right panel uses μ from
+the GLM+MEM (`reports/stage2_model.npz`) — honest regional P(≥1), ×N labels
+(risk vs 0.028% base rate) and daily λ = Σμ (expected number of fires).
+Example Oct 12 2023: ×6-×7 on the top-3 (previously ×38 with the
+overconfident model).
 
-## 10. Fase 3 — Secuencias temporales (14 días) — SIN GANANCIA
+## 10. Phase 3 — temporal sequences (14 days) — NO GAIN
 
-Contexto temporal explícito (ventana 14 días de meteo/FWI por celda, IDW 3
-estaciones; `data/processed/features/v1/sequences.npz`, 267k × 14×8):
+Explicit temporal context (14-day weather/FWI window per cell, IDW over 3
+stations; `data/processed/features/v1/sequences.npz`, 267k × 14×8):
 
-| Modelo | AUC (test) | AP |
+| Model | AUC (test) | AP |
 |---|---|---|
-| LGBM tabular día-D (48 feats, obs) | **0.897** | **0.036** |
-| LGBM tabular día-D (48 feats, forecast test) | 0.867 | 0.019 |
-| LGBM + sumarios 14d | 0.864 | 0.030 |
-| LGBM + secuencia aplanada (112) | 0.811 | 0.012 |
-| LSTM 2×64 (solo met-secuencia) | 0.870 | 0.017 |
+| Day-D tabular LGBM (48 feats, obs) | **0.897** | **0.036** |
+| Day-D tabular LGBM (48 feats, forecast test) | 0.867 | 0.019 |
+| LGBM + 14d summaries | 0.864 | 0.030 |
+| LGBM + flattened sequence (112) | 0.811 | 0.012 |
+| LSTM 2×64 (weather sequence only) | 0.870 | 0.017 |
 
-- **Las secuencias de meteo no añaden valor**: los índices FWI (DC/DMC son
-  acumulados con memoria de meses) ya codifican la historia temporal relevante
-- Consistente con Di Giuseppe 2025 (ECMWF): calidad de datos > arquitectura
-- Nota: comparación LSTM vs tabular no es apples-to-apples (LSTM sin features
-  estáticas/espaciales); el test justo (tabular+sumarios) confirma: −0.3pp AUC
-- Hallazgo adicional (corregido tras detectar datos inválidos): el forecast
-  D-1 con corrección NGR cuesta −1pp de AUC agregado (0.897→0.887); el recall
-  operativo @K queda dentro del ruido (−0.3/−0.4 SE)
+- **Weather sequences add no value**: the FWI indices (DC/DMC are accumulators
+  with months of memory) already encode the relevant temporal history
+- Consistent with Di Giuseppe 2025 (ECMWF): data quality > architecture
+- Note: LSTM vs tabular is not apples-to-apples (LSTM has no static/spatial
+  features); the fair test (tabular+summaries) confirms: −0.3pp AUC
+- Additional finding (corrected after detecting invalid data): the NGR-corrected
+  D-1 forecast costs −1pp aggregate AUC (0.897→0.887); operational @K recall
+  stays within noise (−0.3/−0.4 SE)
 
-## Estado final del sistema
+## Final system state
 
-Pipeline operativo completo y validado:
-1. Forecast D-1 (GFS) → 2. LGBM 245k celdas → 3. Calibración isotónica celda →
-4. Stage 2 GLM+MEM regional (AUC 0.755, rec@10% 39.4%) → 5. Vídeo/niveles ×N+λ
+Complete and validated operational pipeline:
+1. D-1 forecast (NGR) → 2. LGBM 245k cells → 3. cell isotonic calibration →
+4. Stage 2 GLM+MEM regional (AUC 0.755, recall@10% 39.4%) → 5. video/×N+λ levels
 
-## 11. Ronda literatura 2 (NGR, causa, WUI)
+## 11. Literature round 2 (NGR, cause, WUI)
 
-### 11.1 Corrección de sesgo del forecast (NGR-lite) — ADOPTADA ✅
+### 11.1 Forecast bias correction (NGR-lite) — ADOPTED ✅
 
-Bohlmann & Laine 2024 (NHESS): calibración estadística de forecasts de FWI.
-Implementación: corrección lineal por estación (tmax/rh/viento) + factor
-multiplicativo de precipitación, ajustada con pares obs-forecast 2023,
-aplicada a todo el forecast; cadena FWI recalculada sobre el tiempo corregido.
+Bohlmann & Laine 2024 (NHESS): statistical calibration of FWI forecasts.
+Implementation: linear per-station correction (tmax/rh/wind) + multiplicative
+precipitation factor, fitted with 2023 obs-forecast pairs, applied to the
+whole forecast; the FWI chain recomputed over the corrected weather.
 
-- RMSE del FWI forecast 2024 (holdout): 3.03 → **2.37 (−22%)** · bias +1.27 → +0.91
-- Coste del forecast en AUC agregado: −3pp (sin corregir, medida inválida
-  inicial) → **−1pp corregido** (0.897 → 0.887)
-- Recall operativo @K: dentro del ruido (−0.3/−0.4 SE)
+- Forecast FWI RMSE 2024 (holdout): 3.03 → **2.37 (−22%)** · bias +1.27 → +0.91
+- Forecast cost in aggregate AUC: −3pp (uncorrected, invalid initial
+  measurement) → **−1pp corrected** (0.897 → 0.887)
+- Operational @K recall: within noise (−0.3/−0.4 SE)
 - `src/ardintra/features/build_met_fc.py`
 
-### 11.2 Modelos separados por causa — REFUTADO ❌
+### 11.2 Cause-separated models — REFUTED ❌
 
-Gelabert 2025 / Shmuel 2025 sugieren modelos por causa. Con nuestros datos
-(862 humanas ≥10ha en train, 39 rayo, 458 otra):
+Gelabert 2025 / Shmuel 2025 suggest per-cause models. With our data
+(862 human ≥10 ha in train, 39 lightning, 458 other):
 
-| Modelo | AUC |
+| Model | AUC |
 |---|---|
-| Único (referencia) | **0.897** |
-| Solo humanas | 0.867 |
-| Solo naturales+otras | 0.704 |
-| Combinado 1−(1−p_h)(1−p_n) | 0.861 |
+| Single (reference) | **0.897** |
+| Human-only | 0.867 |
+| Natural+other-only | 0.704 |
+| Combined 1−(1−p_h)(1−p_n) | 0.861 |
 
-Dividir debilita la señal (menos positivos por modelo) y el combinado pierde
-3.6pp. Con 76% de igniciones humanas, el modelo único ya captura el patrón
-dominante. La causa queda como columna analítica, no como separación de modelos.
+Splitting weakens the signal (fewer positives per model) and the combined
+model loses 3.6pp. With 76% human ignitions the single model already captures
+the dominant pattern. Cause stays as an analytical column, not a model split.
 
-### 11.3 WUI / densidad de edificios (OSM) — REFUTADO ❌
+### 11.3 WUI / building density (OSM) — REFUTED ❌
 
-Gelabert 2025: distancia a WUI = driver humano principal. Proxy sin población:
-446.494 edificios OSM → densidad 1 km + distancia al edificio más cercano
+Gelabert 2025: distance to WUI = main human driver. Population-free proxy:
+446,494 OSM buildings → 1 km density + distance to nearest building
 (`data/processed/h3_cells/res9_wui.parquet`).
 
-- AUC: 0.8874 (sin) vs 0.8857 (con) — sin ganancia
-- Importancia mínima: ya tenemos dist_to_road, road_density, road_class y
-  road_fuel_interface — la huella humana está cubierta; el proxy es colineal
+- AUC: 0.8874 (without) vs 0.8857 (with) — no gain
+- Minimal importance: we already have dist_to_road, road_density, road_class
+  and road_fuel_interface — the human footprint is covered; the proxy is collinear
 
-## 12. TabPFN v2 y destilación — ganancia en muestra, no transfiere al grid
+## 12. TabPFN v2 and distillation — in-sample gain, no grid transfer
 
-### 12.1 TabPFN v2 (transformer preentrenado, Nature 2025) — mejor modelo en muestra
+### 12.1 TabPFN v2 (pretrained transformer, Nature 2025) — best in-sample model
 
-Ensembling por subsampling (10×10k, todos los positivos), eval con 137
-positivos test + 20k negativos (AUC insesgado):
+Subsampling ensembles (10×10k, all positives), evaluated with 137 test
+positives + 20k negatives (unbiased AUC):
 
-| Modelo | AUC | AP |
+| Model | AUC | AP |
 |---|---|---|
 | **TabPFN v2 (teacher)** | **0.9387** | **0.165** |
 | Blend student+labels | 0.9320 | 0.138 |
-| Student destilado (LGBM) | 0.9303 | 0.144 |
-| LGBM labels (referencia) | 0.8878 | 0.092 |
+| Distilled student (LGBM) | 0.9303 | 0.144 |
+| LGBM labels (reference) | 0.8878 | 0.092 |
 
-+5.1pp AUC y AP ×1.8 sobre LGBM en la distribución muestreada.
++5.1pp AUC and ×1.8 AP over LGBM on the sampled distribution.
 
-### 12.2 Destilación a full-grid — NO TRANSFIERE ❌
+### 12.2 Distillation to full grid — DOES NOT TRANSFER ❌
 
-La inferencia directa de TabPFN en full-grid es inviable (~30+ min/día).
-Destilación: 420k filas full-grid de train puntuadas por el teacher
-(`distill_set.parquet`) → student LGBM (retiene 0.9303 en muestra).
+Direct TabPFN full-grid inference is infeasible (~30+ min/day).
+Distillation: 420k full-grid train rows scored by the teacher
+(`distill_set.parquet`) → LGBM student (retains 0.9303 in-sample).
 
-Pero la evaluación operativa full-grid (82 días) del blend degrada:
-top10 18.0% vs 29.5% (LGBM forecast) · AUC regional 0.593 · rec@10% región 13.1%.
+But the full-grid operational evaluation (82 days) of the blend degrades:
+top-10% 18.0% vs 29.5% (LGBM forecast) · regional AUC 0.593 · recall@10%
+region 13.1%.
 
-**Causa raíz:** el teacher solo fue calibrado/evaluado en la distribución
-MUESTREADA (15 celdas/día); su ranking no transfiere al espacio full-grid —
-el mismo fallo de dominio que la sobreenconfianza de la isotónica. La
-destilación copió fielmente al teacher, incluida su debilidad OOD.
+**Root cause:** the teacher was only calibrated/evaluated on the SAMPLED
+distribution (15 cells/day); its ranking does not transfer to the full-grid
+space — the same domain failure as the isotonic overconfidence. The
+distillation faithfully copied the teacher, including its OOD weakness.
 
-**Lección del proyecto (3 evidencias): la brecha muestra→full-grid es EL
-problema central del sistema.** Cualquier mejora debe validarse directamente
-en full-grid, no en la muestra.
+**Project lesson (3 pieces of evidence): the sample→full-grid gap is THE
+central problem of this system.** Any improvement must be validated directly
+on full grid, not on the sample.
 
-### 12.3 Decisión
+### 12.3 Decision
 
-Pipeline de producción = el mejor validado operativamente:
-forecast D-1 corregido NGR → LGBM 48 feats → isotónica → Stage 2 GLM+MEM.
+Production pipeline = the operationally best-validated one:
+NGR-corrected D-1 forecast → LGBM 48 feats → isotonic → Stage 2 GLM+MEM.
 
-## 13. NVIDIA Kumo Tabular — segunda replicación del hallazgo
+## 13. NVIDIA Kumo Tabular — second replication of the finding
 
-Teacher 2 = Kumo Tabular large (NVIDIA, ICL, pesos locales HF, 215M params).
+Teacher 2 = Kumo Tabular large (NVIDIA, ICL, local HF weights, 215M params).
 
-### En la distribución muestreada — mejor que todos
+### On the sampled distribution — better than everything
 
-| Modelo | AUC | AP |
+| Model | AUC | AP |
 |---|---|---|
 | **Kumo teacher** | **0.947** | — |
 | TabPFN teacher | 0.9387 | 0.165 |
 | LGBM labels | 0.8887 | 0.092 |
 
-### Operativa full-grid (student destilado de Kumo, 82 días) — falla igual
+### Operational full grid (Kumo-distilled student, 82 days) — fails the same way
 
-| Métrica | Kumo destilado | TabPFN destilado | LGBM forecast (V3b) |
+| Metric | Kumo distilled | TabPFN distilled | LGBM forecast (V3b) |
 |---|---|---|---|
-| recall top5 | 12.3% | 6.6% | **13.2%** |
-| recall top10 | 17.1% | 18.0% | **29.5%** |
-| AUC regional | 0.623 | 0.593 | — |
-| rec@10% región | 16.9% | 13.1% | — |
+| top-5 recall | 12.3% | 6.6% | **13.2%** |
+| top-10 recall | 17.1% | 18.0% | **29.5%** |
+| regional AUC | 0.623 | 0.593 | — |
+| recall@10% region | 16.9% | 13.1% | — |
 
-**Hallazgo replicado con 2 foundation models independientes:** ganar en la
-distribución muestreada (más AUC que LGBM) implica estar MÁS comprometido con
-esa distribución → peor transferencia operativa. El LGBM clásico, menos
-expresivo, extrapola mejor al full-grid.
+**Finding replicated with 2 independent foundation models:** winning on the
+sampled distribution (more AUC than LGBM) implies being MORE committed to
+that distribution → worse operational transfer. The classic LGBM, less
+expressive, extrapolates better to the full grid.
 
-Artefactos: `src/ardintra/models/kumo_teacher.py`, `reports/kumo_teacher.json`,
+Artifacts: `src/ardintra/models/kumo_teacher.py`, `reports/kumo_teacher.json`,
 `reports/fullgrid_eval_kumo.json`, `reports/fullgrid_regional_kumo.parquet`,
 `models/student_kumo.joblib`.
+
+## 14. Webapp explanation semantics (viewer)
+
+An important user-facing correction: painting "extreme" cells by
+within-day percentile implies an absolute probability that does not exist at
+105 m (cell P(≥10 ha) ≈ 10⁻⁴ even on the worst historical day — an honest
+absolute map would always be green). The viewer therefore uses
+**within-day risk concentration** language (Bottom/Low/Medium/High/Maximum,
+FWI-gated palette: red only when the day's median FWI ≥15) and the magnitude
+lives at REGION level (P(≥1), ×N) and in λ. See `ardintra/api/day_predictor.py`.

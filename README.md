@@ -1,172 +1,178 @@
 # WildfireRisk-ES (codename: Ardentia)
 
-Sistema de evaluación predictiva y explicable del riesgo de ignición y propagación
-de incendios forestales en España a escala de malla hexagonal H3 res9 (~105 m·celda),
-con piloto en **Galicia** y despliegue final en **Cloudflare**.
+Explainable predictive system for forest-fire **ignition risk** over Galicia
+(Spain), at H3 hexagon res9 (~105 m per cell), driven by a day-ahead weather
+forecast so it can actually run operationally.
 
-> Documentación detallada en [`docs/`](docs/):
-> - [PREPROCESSING.md](docs/PREPROCESSING.md) — pipeline de preprocesamiento completo (fuentes → features → modelo)
-> - [EXPERIMENTS.md](docs/EXPERIMENTS.md) — diario de experimentos: adoptados y refutados con métricas
-> - [DATA_MODEL.md](docs/DATA_MODEL.md) — organización del lake, features y etiquetas
-> - [PIPELINES.md](docs/PIPELINES.md) — guía operativa: cómo regenerar el sistema desde cero
-> - [SOURCES.md](docs/SOURCES.md) — fuentes de datos, rate limits y quirks
+> Detailed documentation in [`docs/`](docs/):
+> - [PREPROCESSING.md](docs/PREPROCESSING.md) — full preprocessing pipeline (sources → features → model)
+> - [EXPERIMENTS.md](docs/EXPERIMENTS.md) — experiment log: what was adopted and what was refuted, with metrics
+> - [DATA_MODEL.md](docs/DATA_MODEL.md) — data lake layout, features and labels
+> - [PIPELINES.md](docs/PIPELINES.md) — operational guide: regenerate everything from scratch
+> - [SOURCES.md](docs/SOURCES.md) — data sources, rate limits and quirks
 
-## Esencia del producto
+## Why
 
-Los índices convencionales (FWI) son meteorológicos y de baja resolución. Este sistema
-integra **tres capas** que el FWI ignora:
+Conventional fire-weather indices (FWI) are meteorological and coarse. This
+system adds **three layers** that the FWI ignores:
 
-1. **Estática territorial**: topografía (GLO-30), modelos de combustible Rothermel
-   (MFE25, `n_MODCOM` 1–13 directamente disponible), y **factor antrópico** — red
-   viaria (OSM/BTN25) con `dist_to_road`, `road_class`, `road_density_1km` y
-   `road_fuel_interface` (vía cuyo arcén toca combustible denso).
-2. **Dinámica biofísica**: NDMI/NDVI/NBR de Sentinel-2 vía **STAC earth-search (AWS, sin
-   auth) con composites locales en GPU/CPU**; meteorología AEMET (tiempo real) + histórico
-   oficial; ERA5-Land para humedad de suelo/VPD. propiedad: **sin GEE, sin API keys para
-   datos satellite**.
-3. **Explicabilidad**: TreeSHAP por celda + boletín operativos generado con LLM.
+1. **Static territory**: topography (Copernicus GLO-30), Rothermel fuel models
+   (Spanish MFE25 forest map, `n_MODCOM` 1–13 directly available), and the
+   **human factor** — road network (OSM) with `dist_to_road`, `road_class`,
+   `road_density_1km` and `road_fuel_interface` (a road whose shoulder touches
+   dense fuel).
+2. **Biophysical dynamics**: Sentinel-2 summer composites (NDMI/NDVI/NBR) via
+   **public STAC/AWS (no auth, no GEE)**; AEMET weather (real time) +
+   Open-Meteo historical backfill; ERA5-Land soil moisture and VPD.
+3. **Explainability**: per-cell TreeSHAP factors + an operational daily
+   bulletin (optionally written in prose by a local LLM).
 
-**Criterio de validación de la idea (Fase 2 Gate):** el modelo multinivél
-*piloto* debe superar un baseline puro-FWI en **PR-AUC**, con ablations que
-demuestren la ganancia específica de las variables viarias/antrópicas.
-(Decisión 2026-10-29: los embeddings satelitales (AlphaEarth/Prithvi) quedan
-**fuera del MVP**; la ablación se hace con met + índices espectrales + estáticas.)
+**Validation criterion (Phase-2 gate):** the pilot model must beat a
+pure-FWI baseline on **PR-AUC**, with ablations isolating the contribution of
+the road/human variables. Result: **GO** — 21–24× lift over chance vs 0.6×
+for FWI-only (see [`reports/gate_report.md`](reports/gate_report.md)).
 
 ## Quick start
 
 ```bash
 uv sync && uv pip install osmium
-cp .env.example .env   # rellenar claves (ver docs/SOURCES.md)
+cp .env.example .env   # fill in keys (see docs/SOURCES.md)
 .venv/bin/python -m ardintra.ingest.bootstrap_data --sources egif,effis,dem,osm,mfe25
 ```
 
-Pipelines independientes (`uv run python -m <módulo>`):
+Individual pipelines (`uv run python -m <module>`):
 
-| Módulo | Qué hace |
+| Module | What it does |
 |---|---|
 | `ardintra.ingest.egif.parse_egif` | EGIF XML/zip → `parts_normalized.parquet` + QA |
-| `ardintra.ingest.effis_wfs` | Perímetros RDII 2017–2025 vía WFS (sin auth) |
-| `ardintra.ingest.dem_glo30` | Copernicus GLO-30 → mosaico + pendiente + orientación |
-| `ardintra.ingest.osm_roads` | OSM pbf → `roads_driveable.parquet` (clases normalizadas) |
-| `ardintra.ingest.mfe25` | MFE25 → SHP (con ModeloComb Rothermel por polígono) |
-| `ardintra.ingest.aemet.aemet_obs` | AEMET obs horaria + estaciones (tiempo real) |
-| `ardintra.ingest.openmeteo_daily` | Backfill histórico meteorológico (_checkpoint idempotente) — AEMET paced para estaciones missing |
-| `ardintra.ingest.s2_stac` | Composites S2 LOCALES (NDMI/NDVI/NBR verano 2017–2024 @100 m, sin auth) |
-| `ardintra.features.build_static` | Tabla maestra H3 res9 con todas las estáticas |
+| `ardintra.ingest.effis_wfs` | RDII perimeters 2017–2025 via WFS (no auth) |
+| `ardintra.ingest.dem_glo30` | Copernicus GLO-30 → mosaic + slope + aspect |
+| `ardintra.ingest.osm_roads` | OSM pbf → `roads_driveable.parquet` (normalized classes) |
+| `ardintra.ingest.mfe25` | MFE25 → SHP (Rothermel fuel model per polygon) |
+| `ardintra.ingest.aemet.aemet_obs` | AEMET hourly obs + stations (real time) |
+| `ardintra.ingest.openmeteo_daily` | Weather historical backfill (idempotent checkpoints) |
+| `ardintra.ingest.openmeteo_forecast_daily` | Day-D weather forecast issued D-1 (operational regime) |
+| `ardintra.ingest.s2_stac` | LOCAL S2 composites (NDMI/NDVI/NBR summers 2017–2024 @100 m, no auth) |
+| `ardintra.features.build_static` | Master H3 res9 static table |
 
-## Pipeline final validado (2026-10-31)
+## Validated production pipeline (2026-10-31)
 
 ```
-Forecast D-1 (HRES vía Open-Meteo, corrección NGR-lite por estación)
-  → LGBM 48 features (245k celdas H3 res9)
-  → calibración isotónica (Brier 0.0118→0.0065, reliability casi perfecta)
-  → Stage 2 regional: GLM + Moran Eigenvector Maps res7 (Poisson jerárquico)
-  → niveles de riesgo ×N + λ diario (Nº esperado de fuegos)
+Day-D forecast (HRES via Open-Meteo, per-station NGR-lite bias correction)
+  → LGBM 48 features (245k H3 res9 cells)
+  → isotonic calibration (Brier 0.0118→0.0065, near-perfect reliability)
+  → regional Stage 2: GLM + Moran Eigenvector Maps res7 (hierarchical Poisson)
+  → risk levels ×N + daily λ (expected number of ≥10 ha fires)
 ```
 
-**Métricas clave** (splits temporales honestos, test 2023-24 jamás tocado):
+**Key metrics** (honest temporal splits; 2023-24 test data never used in
+training or any modeling decision):
 
-| Métrica | Valor | Referencia |
+| Metric | Value | Reference |
 |---|---|---|
-| ROC-AUC agregado (muestra, obs) | 0.897 | LGBM 48 feats |
-| ROC-AUC agregado (forecast D-1 corregido) | 0.887 | coste −1pp por operar con forecast |
-| Recall operativo top-10% territorio | 29.5-31.2% | 82 días, 137 fuegos ≥10 ha |
-| Recall operativo top-5% | 13-14% | idem |
-| AUC regional (Stage 2 GLM+MEM, 2024) | **0.755** | vs 0.693 isotónica / 0.719 cruda |
-| Recall@10% regiones-día (Stage 2) | **39.4%** | vs 27.3% baseline |
-| Calibración celda (Brier) | 0.0065 | −45% vs crudo |
-| Corrección NGR del forecast | RMSE FWI −22% | 3.03→2.37 |
+| Aggregate ROC-AUC (sample, obs weather) | 0.897 | LGBM 48 feats |
+| Aggregate ROC-AUC (day-D forecast, NGR-corrected) | 0.887 | −1pp cost of operating on forecasts |
+| Operational recall top-10% of territory | 29.5-31.2% | 82 test days, 137 fires ≥10 ha |
+| Operational recall top-5% | 13-14% | idem |
+| Regional AUC (Stage 2 GLM+MEM, 2024) | **0.755** | vs 0.693 isotonic / 0.719 raw |
+| Recall@10% region-days (Stage 2) | **39.4%** | vs 27.3% baseline |
+| Cell calibration (Brier) | 0.0065 | −45% vs raw |
+| Forecast NGR correction | FWI RMSE −22% | 3.03→2.37 |
 
-**Vídeo de ejemplo** (`reports/simulacion_2023_2panel.mp4`, temporada 2023):
-panel izquierdo = celdas res9 por percentil de riesgo calibrado; panel derecho =
-P(≥1 fuego ≥10 ha) por región res7 con el modelo Stage 2, etiquetas ×N (riesgo
-vs base rate) en las top-3 del día; pie con λ diario y fuegos reales (⭐ ≥10 ha).
+**Example video** (`reports/simulacion_2023_2panel.mp4`, 2023 season):
+left = res9 cells by risk percentile; right = P(≥1 fire ≥10 ha) per res7
+region with the Stage 2 model, ×N labels (risk vs base rate) on the day's
+top regions; footer with daily λ and real fires (⭐ ≥10 ha).
 
-## Webapp interactiva (predicción real por día)
+## Interactive webapp (real predictions, pick a day)
 
 ```bash
 uv run uvicorn ardintra.api.mini_api:app --port 8001
-# abrir http://localhost:8001
+# open http://localhost:8001
 ```
 
-El visor MapLibre integra el **sistema completo real**: elige una fecha →
-"Predecir" → construye las 245.172 celdas de features (forecast D-1 del día,
-satélite, recencia, viaria) → celda: P(ignición ≥10 ha) calibrada; región:
-P(≥1 fuego ≥10 ha) (Stage 2 GLM+MEM); λ diario; y los fuegos reales de EGIF
-de ese día como ⭐ para comparar.
+The MapLibre viewer runs the **real production system**: pick a date →
+"Predecir" → builds the 245,172-cell feature matrix (day-D forecast, satellite,
+fire recency, roads) → per-cell P(ignition ≥10 ha) calibrated; per-region
+P(≥1 fire ≥10 ha) (Stage 2 GLM+MEM); daily λ; and the real EGIF fires of that
+day drawn on top for comparison.
 
-- **Explicabilidad TreeSHAP**: click en cualquier celda con predicción activa →
-  factores que suben/bajan su score (log-odds, valores originales).
+- **TreeSHAP explainability**: click any cell (with a prediction active) →
+  the factors pushing its score up/down (log-odds, original values).
   (`GET /v1/explain/{date}/{h9}`)
-- **Boletín del día** (📋): λ, regiones destacadas ×N, factores globales del día
-  (media |SHAP|) y comparación con los fuegos reales. **Con LLM local en prosa
-  operativa**: cualquier servidor OpenAI-compatible (por defecto vLLM + Qwen2.5-7B-AWQ
-  en tu GPU); sin servidor → resumen determinista.
+- **Daily bulletin** (📋): λ, highlighted regions ×N, day-level global factors
+  (mean |SHAP|) and comparison with real fires. **Written in prose by a local
+  LLM** if available; deterministic summary otherwise.
 
 ```bash
-# 1) LLM ligero local (una vez crea .venv-llm con vLLM; GPU ≥12 GB)
+# 1) local lightweight LLM (first run creates .venv-llm with vLLM; GPU ≥12 GB)
 bash scripts/serve_llm.sh
-# 2) visor con el backend conectado (boletín en prosa, fácil de cambiar de server/modelo)
+# 2) viewer with the backend connected (prose bulletin; server/model swappable by env)
 LLM_BASE_URL=http://localhost:8002/v1 uv run uvicorn ardintra.api.mini_api:app --port 8001
 ```
 
-El backend del boletín es intercambiable por env: `LLM_BASE_URL` (+`LLM_MODEL`,
-autodescubierto vía `/models`, y `LLM_API_KEY` opcional) — sirve vLLM, ollama,
-llama.cpp o LM Studio sin tocar código; con `ANTHROPIC_API_KEY` también vale la API.
+The bulletin backend is fully swappable via env: `LLM_BASE_URL` (with
+`LLM_MODEL` auto-discovered from `/models`, and optional `LLM_API_KEY`) —
+works with vLLM, ollama, llama.cpp or LM Studio without code changes; the
+Anthropic API also works via `ANTHROPIC_API_KEY`.
+
 - Endpoints: `GET /v1/forecast/{date}`, `GET /overlay/forecast/{date}.png`,
   `GET /v1/explain/{date}/{h9}`, `GET /v1/bulletin/{date}`.
 
-## Visual
+## Visual results
 
-**Temporada 2023 con el sistema completo** (`reports/simulacion_2023_2panel.mp4`,
-2 paneles: celdas res9 + regiones res7 con P(≥1) y etiquetas ×N; pie con λ diario
-y fuegos reales ⭐):
+**2023 season with the full system** (`reports/simulacion_2023_2panel.mp4`,
+2 panels: res9 cells + res7 regions with P(≥1) and ×N labels; footer with
+daily λ and real fires ⭐):
 
-| Día pico (12-oct-2023, 6 fuegos ≥10 ha) | Inicio de temporada |
+| Peak day (Oct 12 2023, 6 fires ≥10 ha) | Season start |
 |---|---|
-| ![Pico octubre](docs/media/ejemplo_fuego_pico.png) | ![Primavera](docs/media/ejemplo_primavera.png) |
+| ![October peak](docs/media/peak_day.png) | ![Season start](docs/media/season_start.png) |
 
-Gráficas del ciclo: [curvas ROC/PR](reports/figures/curvas_roc_pr.png) ·
-[ablación](reports/figures/ablacion.png) ·
-[resoluciones](reports/figures/resoluciones.png). Otros vídeos por resolución:
+Cycle charts: [ROC/PR curves](reports/figures/curvas_roc_pr.png) ·
+[ablation](reports/figures/ablacion.png) ·
+[resolutions](reports/figures/resoluciones.png). More per-resolution videos:
 `reports/simulacion_2023_res{4..9}.mp4`.
 
-## Lecciones del ciclo de experimentación (2026-10-30/31)
+## Lessons from the experimentation cycle (2026-10-30/31)
 
-Refutaciones documentadas (todas con números en `reports/FULLGRID_REGIONAL.md`):
+Refutations (all documented with numbers in
+[`reports/FULLGRID_REGIONAL.md`](reports/FULLGRID_REGIONAL.md)):
 
-- **La brecha muestra→full-grid es EL problema central**: la calibración ajustada
-  en la muestra no transfiere al grid completo (sobreenconfianza estructural).
-  TabPFN v2 (AUC 0.9387 en muestra, +5.1pp sobre LGBM) tampoco transfiere vía
-  destilación (top10 18% vs 29.5%) — fallo OOD del teacher.
-- Muestreo estratificado de negativos (Pourmohamad 2025): empeora aquí (−1.9pp).
-- Secuencias temporales 14d (LSTM/flat/sumarios): sin ganancia — los índices FWI
-  ya son integradores temporales (DC/DMC acumulan meses).
-- Modelos separados por causa: −3.6pp (76% humanas domina el patrón).
-- WUI por edificios OSM: colineal con las features viarias existentes.
-- Frailty NB: no transfiere out-of-sample (55 días de train).
+- **The sample→full-grid gap is THE central problem**: calibration fitted on
+  the sampled training distribution does not transfer to the full 245k-cell
+  grid (structural overconfidence). TabPFN v2 (sampled AUC 0.9387, +5.1pp over
+  LGBM) also fails to transfer via distillation (top-10% recall 18% vs 29.5%)
+  — teacher out-of-distribution failure. Replicated with NVIDIA Kumo Tabular.
+- Stratified negative sampling (Pourmohamad 2025): hurts here (−1.9pp AUC).
+- 14-day temporal sequences (LSTM/flat/summaries): no gain — FWI indices are
+  already temporal integrators (DC/DMC accumulate months of memory).
+- Cause-separated models: −3.6pp (76% human ignitions dominate the pattern).
+- WUI/building-density from OSM: collinear with existing road features.
+- NB frailty (spatial dependence): fails out-of-sample (55 training days).
 
-Adopciones: isotónica (Brier −45%), Stage 2 GLM+MEM (+12pp rec@10% regional),
-corrección NGR del forecast (RMSE −22%, leakage operativo eliminado).
+Adopted: isotonic calibration (Brier −45%), Stage 2 GLM+MEM (+12pp regional
+recall@10%), NGR forecast correction (RMSE −22%, removes the operational
+data-leak).
 
-## Estado (2026-10-31)
+## Status (2026-10-31)
 
-- Pipeline completo operativo: forecast D-1 → LGBM → isotónica → Stage 2 → vídeo ✔
-- Datos: EGIF+EFFIS (causa propagada), AEMET+openmeteo (obs y forecast D-1),
-  ERA5-Land, S2 8/8 veranos, OSM (carreteras + edificios), DEM/MFE25 ✔
-- Pendiente: modelos por causa con más datos, ensembles ECMWF (51 miembros),
-  más años de histórico (el límite real es la señal, no el modelo)
+- Full pipeline operational: D-1 forecast → LGBM → isotonic → Stage 2 → video ✔
+- Data: EGIF+EFFIS (cause propagated), AEMET+Open-Meteo (obs and D-1 forecast),
+  ERA5-Land, S2 8/8 summers, OSM (roads + buildings), DEM/MFE25 ✔
+- Open: cause-separated models with more data, ECMWF 51-member ensembles,
+  more historical years (the real limit is signal, not model class)
 
-## Comparativa por resolución de hexágono (balanced-ensemble 25×, target ≥10 ha, test 2023-24)
+## Hexagon resolution comparison (balanced-ensemble 25×, target ≥10 ha, test 2023-24)
 
-| res | celda | filas | prev big10 test | PR-AUC | **lift** | ROC-AUC | recall@5% |
+| res | cell | rows | big10 test prevalence | PR-AUC | **lift** | ROC-AUC | recall@5% |
 |---|---|---|---|---|---|---|---|
 | **res9** | 105 m | 267k | 0.23% | 0.0538 | **23.4×** | **0.9179** | 54% |
 | **res8** | 740 m | 72k | 0.82% | 0.1247 | 15.2× | 0.9021 | 51% |
 | res7 | 5.2 km | 28k | 2.38% | 0.1451 | 6× | 0.8643 | 36% |
 | res6 | 36 km² | 30k | 2.04% | 0.1336 | 7× | 0.8737 | 39% |
 | res5 | 253 km² | 16k | 4.07% | 0.1622 | 4× | 0.8488 | 29% |
-| res4 | 1.770 km² | 11k | 5.11% | 0.2656 | 5× | 0.8757 | 30% |
+| res4 | 1,770 km² | 11k | 5.11% | 0.2656 | 5× | 0.8757 | 30% |
 
-⚠️ El AP absoluto sube con celdas grandes SOLO porque sube la prevalencia; el **lift honesto**
-muestra que res9/res8 son muy superiores (5-21× vs 4-7×).
+⚠️ Absolute AP rises with larger cells ONLY because prevalence rises; the
+**honest lift** shows res9/res8 are far superior (5-21× vs 4-7×).
