@@ -1,13 +1,15 @@
 """Mini API para el visor JS (Fase 3 preview): overlay ligero + detalle bajo demanda.
 
 Endpoints:
-  GET /                              → visor (api/static/index.html)
-  GET /v1/risk/cell/{h9}?scenario=…  → ficha completa de la celda (cliqueo)
-  GET /overlay/risk/{scenario}.png   → degradado rasterizado del escenario
-  GET /overlay/ignitions.geojson     → puntos EGIF reales (negativos de validación)
-  GET /overlay/effis.geojson         → celdas quemadas EFFIS
-  GET /overlay/borders.png           → contornos H3 (capa constante)
-  GET /overlay/roads_light.geojson   → vías principales simplificadas (capa toggle)
+  GET /                              visor (api/static/index.html)
+  GET /v1/risk/cell/{h9}?date=…      ficha real de la celda (TreeSHAP en /v1/explain)
+  GET /v1/forecast/{date}            pipeline completo del día (λ, regiones, top celdas)
+  GET /v1/bulletin/{date}            boletín (opcional vía LLM local)
+  GET /overlay/forecast/{date}.png   mapa de concentración de riesgo por celda
+  GET /overlay/ignitions.geojson     puntos EGIF
+  GET /overlay/effis.geojson         celdas quemadas EFFIS
+  GET /overlay/borders.png           contornos H3
+  GET /overlay/roads_light.geojson   vías principales
 """
 
 from __future__ import annotations
@@ -27,7 +29,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from PIL import Image, ImageDraw
 from pyproj import Transformer
 
-from ardintra.features.risk_sim import ABS_CUTS, CLASSES, PRESETS, RAMP, risk_for_scenario
+from ardintra.features.risk_sim import RAMP
 from ardintra.api.day_predictor import predict_day, fuegos_del_dia
 from ardintra.api.explanation import explain_cell, explain_day_global
 
@@ -40,19 +42,31 @@ _BORDER_DIR = Path("data/interim/h3_borders")
 app = FastAPI(title="WildfireRisk-ES mini-viewer")
 
 
+@app.on_event("startup")
+def warmup() -> None:
+    """Precalienta caches (meteo pivots, Stage 2, features del día por defecto)
+    en background para que el primer click no pague los ~90 s del arranque."""
+    import threading
+
+    def _warm():
+        try:
+            from ardintra.api.day_predictor import _met_context, _stage2, _lgbm_pack, _iso, _day_Z
+            _met_context(), _lgbm_pack(), _iso(), _stage2()  # fuerza los caches
+            _day_Z("2024-07-14")  # features del día por defecto en cache
+            _forecast_day("2024-07-14")   # cadena completa del día por defecto
+            print("warmup listo (día por defecto instantáneo)", flush=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"warmup error: {e}", flush=True)
+
+    threading.Thread(target=_warm, daemon=True).start()
+
+
 @lru_cache(maxsize=1)
 def cells() -> pd.DataFrame:
     keep = ["h9", "lat", "lon", "forest_frac", "fuel_model", "elev_m", "slope_deg",
             "aspect_deg", "dist_to_road", "road_class", "road_density_1km",
             "road_fuel_interface"]
     return pd.read_parquet(CELLS, columns=keep)
-
-
-@lru_cache(maxsize=8)
-def risk_scenario(scenario: str) -> pd.DataFrame:
-    if scenario not in PRESETS:
-        raise HTTPException(404, f"escenario {scenario} no existe")
-    return risk_for_scenario(cells(), scenario)
 
 
 @lru_cache(maxsize=2)
@@ -116,9 +130,9 @@ def risk_cell(h9: str, scenario: str = "ola_de_calor", date: str | None = None) 
                 "real": True,
             }
     if sim is None:
-        r = risk_scenario(scenario).set_index("h9")
-        sim = r.loc[h9, ["p_riesgo", "clase"]].to_dict() if h9 in r.index else {}
-        sim["real"] = False
+        # sin fecha válida/celda fuera del grid del día: ficha sin predicción
+        sim = {"p_riesgo": None, "clase": -1, "clase_txt": "n/d",
+               "escenario": "sin predicción activa", "real": False}
     ign = labels_ign().set_index("h9")
     if h9 in ign.index:
         irow = ign.loc[h9]
@@ -188,23 +202,6 @@ def _cell_xy_m() -> tuple[np.ndarray, np.ndarray]:
     return x, y
 
 
-def _band_colors(df: pd.DataFrame, palette: str) -> np.ndarray:
-    """Color RGB (0-255) por fila: discreta (RAMP) o continua (interpolada
-    DENTRO de cada banda absoluta del boletín)."""
-    if palette == "continua":
-        ramp = np.asarray(RAMP, dtype=float)
-        p = df["p_riesgo"].to_numpy()
-        k = df["clase"].astype(int).to_numpy()
-        lo = np.array([0.0, *ABS_CUTS])
-        hi = np.array([*ABS_CUTS, 1.0])
-        t = np.clip((p - lo[k]) / np.maximum(hi[k] - lo[k], 1e-9), 0, 1)
-        kb = np.clip(k + 1, 0, 4)
-        rgb_f = ramp[k] * (1 - t[:, None]) + ramp[kb] * t[:, None]
-        return rgb_f.astype(np.uint8)
-    ramp = np.asarray(RAMP, dtype=np.uint8)
-    return ramp[df["clase"].astype(int).to_numpy()]
-
-
 def _voronoi_img(W: int, H: int, colors: np.ndarray, alpha: int = 215) -> Image.Image:
     """Cada píxel recibe el color de la celda H3 que lo contiene de verdad:
     el Voronoi de los centros de celda ES la teselación hexagonal."""
@@ -225,25 +222,6 @@ def _voronoi_img(W: int, H: int, colors: np.ndarray, alpha: int = 215) -> Image.
     img[ok, :3] = colors[idx[ok]]
     img[ok, 3] = alpha
     return Image.fromarray(img.reshape(H, W, 4), "RGBA")
-
-
-@lru_cache(maxsize=10)
-def _risk_png(scenario: str, palette: str, width: int) -> bytes:
-    df = risk_scenario(scenario).reset_index(drop=True)
-    W, H = _png_grid(width)
-    img = _voronoi_img(W, H, _band_colors(df, palette))
-    bio = io.BytesIO()
-    img.save(bio, format="PNG")
-    return bio.getvalue()
-
-
-@app.get("/overlay/risk/{scenario}.png")
-def overlay_risk(scenario: str, width: int = 1600, palette: str = "discreta") -> Response:
-    return Response(
-        content=_risk_png(scenario, palette, width),
-        media_type="image/png",
-        headers={"Cache-Control": "no-cache"},
-    )
 
 
 @app.get("/overlay/borders.png")
