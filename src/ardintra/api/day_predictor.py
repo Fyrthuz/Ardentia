@@ -272,6 +272,31 @@ def predict_day(date_str: str) -> dict:
     pct = (rankdata(p_cal) - 0.5) / len(p_cal)
     levels = np.digitize(pct, [0.40, 0.75, 0.90, 0.97])
 
+    # GATE meteorológico: colores de peligro (naranja/rojo) SOLO si el día es
+    # realmente peligroso (FWI mediana del grid). Días suaves → verde-amarillo.
+    fw = np.asarray(d["fwi"].to_numpy(), dtype=float)
+    fwi_med = float(np.nanmedian(fw)) if np.isfinite(fw).any() else float("nan")
+    if np.isnan(fwi_med) or fwi_med < 10:
+        gate = "verde-amarillo"
+    elif fwi_med < 15:
+        gate = "hasta-naranja"
+    else:
+        gate = "completo"
+    if gate == "verde-amarillo":
+        levels = np.minimum(levels, 1)
+    elif gate == "hasta-naranja":
+        levels = np.minimum(levels, 2)
+    if gate == "verde-amarillo":
+        leyenda = [("Bajo", "#36a852"), ("Tope del día (sin riesgo destacado)", "#ebd23c")]
+        nombres = ["Bajo", "Tope del día"]
+    elif gate == "hasta-naranja":
+        leyenda = [("Bajo", "#36a852"), ("Medio", "#ebd23c"), ("Tope del día", "#f58c28")]
+        nombres = ["Bajo", "Medio", "Tope del día"]
+    else:
+        leyenda = [("Fondo", "#36a852"), ("Bajo", "#ebd23c"), ("Medio", "#f58c28"),
+                   ("Alto", "#e83c28"), ("Máximo", "#960f2d")]
+        nombres = ["Fondo", "Bajo", "Medio", "Alto", "Máximo"]
+
     return {
         "fecha": str(day.date()),
         "meteo_source": src,
@@ -281,6 +306,12 @@ def predict_day(date_str: str) -> dict:
         "p_celda_max": round(float(p_cal.max()), 5),
         "regiones_top": top_regions,
         "celdas_top": top_cells,
+        "riesgo_dia": {"fwi_mediana": None if np.isnan(fwi_med) else round(fwi_med, 1),
+                        "paleta": {"verde-amarillo": "restringida a verde-amarillo (FWI <10)",
+                                    "hasta-naranja": "hasta naranja (FWI 10-15)",
+                                    "completo": "completa (FWI ≥15)"}[gate]},
+        "leyenda": leyenda,
+        "nombres_nivel": nombres,
         "_arrays": {"p_cal": p_cal, "levels": levels, "h9": cells["h9"].to_numpy()},
     }
 

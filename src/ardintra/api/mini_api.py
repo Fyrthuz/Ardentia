@@ -107,10 +107,11 @@ def risk_cell(h9: str, scenario: str = "ola_de_calor", date: str | None = None) 
         sel = df.loc[df["h9"] == h9]
         if not sel.empty:
             nivel = int(sel["level"].iloc[0])
+            nombres = summary.get("nombres_nivel") or CONCENTRACION_TXT
             sim = {
                 "p_riesgo": float(sel["p_cal"].iloc[0]),
                 "clase": nivel,
-                "clase_txt": CONCENTRACION_TXT[nivel],
+                "clase_txt": nombres[nivel] if nivel < len(nombres) else CONCENTRACION_TXT[nivel],
                 "escenario": f"predicción real {date}",
                 "real": True,
             }
@@ -420,13 +421,50 @@ def bulletin(date: str) -> JSONResponse:
 
 
 def _llm_bulletin(facts: dict) -> str | None:
-    """Prosa operativa vía LLM si hay clave en el entorno; None → fallback determinista."""
+    """Prosa operativa vía LLM. Cadena de backends (el primero disponible gana):
+      1. LLM_BASE_URL  → cualquier server OpenAI-compatible en local: vLLM,
+         ollama, llama.cpp, LM Studio, NIM. Con `LLM_MODEL` fijo o
+         autodescubierto vía {base}/models (vLLM lo expone).
+      2. ANTHROPIC_API_KEY → API de Anthropic.
+      Sin ninguno → None y el boletín sale determinista."""
     import os as _os
     import httpx
     prompt = ("Eres el analista de incendios de Galicia. Con estos datos del pipeline, "
               "escribe un boletín operacional breve (5-6 frases, español, sin tecnicismos "
               "innecesarios) para el equipo de emergencias. NO inventes datos. Datos: "
               + json.dumps(facts, ensure_ascii=False))
+
+    base = _os.environ.get("LLM_BASE_URL", "").rstrip("/")
+    if base:
+        # tolerante a base con o sin /v1
+        bases = [base] if base.endswith("/v1") else [f"{base}/v1", base]
+        paths = ["/models", "/chat/completions"]
+        resp_models, resp_chat = None, None
+        for b in bases:
+            try:
+                rm_ = httpx.get(f"{b}{paths[0]}", timeout=5.0)
+                if rm_.status_code == 200:
+                    resp_models, resp_chat = b, f"{b}{paths[1]}"
+                    break
+            except Exception:  # noqa: BLE001
+                continue
+        model = _os.environ.get("LLM_MODEL")
+        if not model and resp_models:
+            try:
+                model = httpx.get(f"{resp_models}{paths[0]}", timeout=5.0).json()["data"][0]["id"]
+            except Exception:  # noqa: BLE001
+                model = None
+        if model and resp_chat:
+            try:
+                r = httpx.post(resp_chat,
+                               json={"model": model, "max_tokens": 420,
+                                     "messages": [{"role": "user", "content": prompt}]},
+                               headers=({"Authorization": f"Bearer {_os.environ['LLM_API_KEY']}"} if _os.environ.get("LLM_API_KEY") else None),
+                               timeout=90.0)
+                if r.status_code == 200:
+                    return r.json()["choices"][0]["message"]["content"]
+            except Exception:  # noqa: BLE001
+                pass
     key = _os.environ.get("ANTHROPIC_API_KEY")
     if key:
         try:
