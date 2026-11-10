@@ -99,8 +99,20 @@ de ese día como ⭐ para comparar.
   factores que suben/bajan su score (log-odds, valores originales).
   (`GET /v1/explain/{date}/{h9}`)
 - **Boletín del día** (📋): λ, regiones destacadas ×N, factores globales del día
-  (media |SHAP|) y comparación con los fuegos reales. Con `ANTHROPIC_API_KEY`
-  en el entorno se genera en prosa operativa vía LLM; sin clave, resumen determinista.
+  (media |SHAP|) y comparación con los fuegos reales. **Con LLM local en prosa
+  operativa**: cualquier servidor OpenAI-compatible (por defecto vLLM + Qwen2.5-7B-AWQ
+  en tu GPU); sin servidor → resumen determinista.
+
+```bash
+# 1) LLM ligero local (una vez crea .venv-llm con vLLM; GPU ≥12 GB)
+bash scripts/serve_llm.sh
+# 2) visor con el backend conectado (boletín en prosa, fácil de cambiar de server/modelo)
+LLM_BASE_URL=http://localhost:8002/v1 uv run uvicorn ardintra.api.mini_api:app --port 8001
+```
+
+El backend del boletín es intercambiable por env: `LLM_BASE_URL` (+`LLM_MODEL`,
+autodescubierto vía `/models`, y `LLM_API_KEY` opcional) — sirve vLLM, ollama,
+llama.cpp o LM Studio sin tocar código; con `ANTHROPIC_API_KEY` también vale la API.
 - Endpoints: `GET /v1/forecast/{date}`, `GET /overlay/forecast/{date}.png`,
   `GET /v1/explain/{date}/{h9}`, `GET /v1/bulletin/{date}`.
 
