@@ -84,6 +84,8 @@ def index() -> FileResponse:
 
 
 NIVEL_TXT = ["Bajo", "Moderado", "Alto", "Muy alto", "Extremo"]
+# nombres por concentración del día (percentil) — sin implicar probabilidad absoluta
+CONCENTRACION_TXT = ["Fondo", "Bajo", "Medio", "Alto", "Máximo"]
 
 
 @app.get("/v1/risk/cell/{h9}")
@@ -106,7 +108,7 @@ def risk_cell(h9: str, scenario: str = "ola_de_calor", date: str | None = None) 
             sim = {
                 "p_riesgo": float(sel["p_cal"].iloc[0]),
                 "clase": nivel,
-                "clase_txt": NIVEL_TXT[nivel],
+                "clase_txt": CONCENTRACION_TXT[nivel],
                 "escenario": f"predicción real {date}",
                 "real": True,
             }

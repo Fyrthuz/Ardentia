@@ -83,6 +83,8 @@ const IMG_COORDS = [[-9.65, 43.95], [-6.60, 43.95], [-6.60, 41.75], [-9.65, 41.7
 const SCENES = ["primavera_normal","viento_moderado","ola_de_calor","sequia_extrema"];
 // colores EXACTOS de la paleta discreta del servidor (risk_sim.RAMP) — ficha y leyenda
 const LAYER_COLORS = {"Bajo":"#36a852","Moderado":"#ebd23c","Alto":"#f58c28","Muy alto":"#e83c28","Extremo":"#960f2d"};
+// niveles 0-4 (orden de color) para la ficha/etiquetas
+const CONC_TXT = ["Fondo", "Bajo", "Medio", "Alto", "Máximo"];
 const CAUSA_TXT = {400:"intencionado",240:"causa desconocida",300:"negligencia",280:"ignota"};
 const SCEN_NAMES = {primavera_normal:"Primavera normal",viento_moderado:"Viento moderado",ola_de_calor:"Ola de calor",sequia_extrema:"Sequía extrema"};
 
@@ -96,8 +98,14 @@ if (urlScen && SCENES.includes(urlScen)) {
   scen = urlScen;
 }
 
-document.getElementById("legend").innerHTML =
-  Object.entries(LAYER_COLORS).map(([n,c])=>`<div style="background:${c}">${n}</div>`).join("");
+function setLegend(mode){
+  const names = mode === "real"
+    ? { "Fondo":"#36a852", "Bajo":"#ebd23c", "Medio":"#f58c28", "Alto":"#e83c28", "Máximo":"#960f2d" }
+    : LAYER_COLORS;
+  document.getElementById("legend").innerHTML =
+    Object.entries(names).map(([n,c])=>`<div style="background:${c}" title="${mode==="real" ? "concentración del riesgo de hoy (percentil)" : "escenario simulado"}">${n}</div>`).join("");
+}
+setLegend("sim");
 
 map.on("load", () => {
   changeScenario();
@@ -125,6 +133,7 @@ function changeScenario(){
     map.setPaintProperty(layId, "raster-opacity", 1);
   }
   scenLayer[layId] = layId;
+  setLegend("sim");
   if (window._lastH9) detail(window._lastH9);   // refresh ficha si hay sel.
 }
 
@@ -184,9 +193,9 @@ async function detail(h9){
     setHL(j.boundary);
     const s = j.static, sim = j.sim, eg = j.egif;
     const probaTxt = sim.real
-      ? `<span class="chip" style="background:${LAYER_COLORS[sim.clase_txt] ?? "#666"}">${sim.clase_txt}</span>
-       <span class="lbl" style="margin-left:6px">predicción real ${fcastDate}</span>
-       <div class="row" style="margin-top:8px"><span class="lbl">P(ignición ≥10 ha hoy)</span> <b>${(sim.p_riesgo*100).toFixed(2)}%</b></div>`
+      ? `<span class="chip" style="background:${LAYER_COLORS[sim.clase_txt] ?? "#666"}">${CONC_TXT[sim.clase] ?? sim.clase_txt}</span>
+       <span class="lbl" style="margin-left:6px">concentración del riesgo hoy · ${fcastDate}</span>
+       <div class="row" style="margin-top:8px"><span class="lbl">P(ignición ≥10 ha hoy) según modelo</span> <b>${(sim.p_riesgo*100).toFixed(2)}%</b> <span class="lbl">(estimación, ver nota ↓)</span></div>`
       : `<span class="chip" style="background:${LAYER_COLORS[sim.clase_txt] ?? "#666"}">${sim.clase_txt ?? "n/d"}</span>
        <span class="lbl" style="margin-left:6px">${SCEN_NAMES[scen]} (simulado)</span>
        <div class="row" style="margin-top:8px"><span class="lbl">Probabilidad simulada</span> <span class="val">${(sim.p_riesgo*100).toFixed(1)}%</span></div>`;
@@ -233,6 +242,7 @@ async function predictDay(){
     map.addLayer({id: layId, type: "raster", source: layId, paint: {"raster-opacity": 1}});
     // apagar el escenario simulado
     Object.values(scenLayer).forEach(id => map.setPaintProperty(id, "raster-opacity", 0));
+    setLegend("real");
     // fuegos reales de ese día como estrellas
     const fsrcId = "fcast-fires";
     const feats = (j.fuegos_reales ?? []).map(f => ({
