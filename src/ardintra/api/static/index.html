@@ -318,11 +318,18 @@ async function showBulletin(){
       : "sin igniciones registradas";
     const fac = (j.factores_dia ?? []).slice(0, 4).map(f => `#${f.nombre}`).join(" · ");
     const regs = (j.regiones_top ?? []).map(t => `⬢ P(≥1)=${(t.p_alguno*100).toFixed(2)}% · ×${t.riesgo_x}`).join(" | ");
-    el.innerHTML = `<b>Boletín ${j.fecha}</b> (${j.meteo_source})<br/>
-      λ esperado: <b>${j.lambda_galicia.toFixed(2)}</b> fuegos ≥10 ha · ${fireTxt}<br/>
-      Regiones destacadas: ${regs || "—"}<br/>
-      Factores del día: <b>${fac}</b>
-      <div style="margin-top:4px;color:#888">(resumen determinista del pipeline; LLM opcional con OPENAI_API_KEY/ANTHROPIC_API_KEY)</div>`;
+    const cabecera = `<b>Boletín ${j.fecha}</b> (${j.meteo_source})<br/>
+      λ esperado: <b>${j.lambda_galicia.toFixed(2)}</b> fuegos ≥10 ha · ${fireTxt}<br/>`;
+    const det = `Regiones destacadas: ${regs || "—"}<br/>
+      Factores del día: <b>${fac}</b>`;
+    el.innerHTML = j.boletin_llm && j.boletin
+      ? `${cabecera}
+         <div style="margin:6px 0;padding:8px;background:#fffbe6;border-left:3px solid #c0392b;white-space:pre-wrap">${j.boletin}</div>
+         <details style="color:#666"><summary>datos del pipeline</summary>${det}</details>
+         <div style="margin-top:4px;color:#888">🤖 prosa: LLM local (LLM_BASE_URL)</div>`
+      : `${cabecera}
+         ${det}
+         <div style="margin-top:4px;color:#888">resumen determinista — LLM no conectado (arranca con LLM_BASE_URL o bash scripts/serve_llm.sh)</div>`;
   } catch (e) {
     el.innerHTML = `<span class="warn">Boletín no disponible: ${e}</span>`;
   }
